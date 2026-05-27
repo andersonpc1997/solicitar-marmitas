@@ -2,12 +2,14 @@
  * ui.js
  * Oilema Sementes — Controle de Marmitas
  *
- * Controle de navegação SPA (troca entre views)
- * e injeção do logo em todas as páginas.
+ * Controle de navegação SPA e injeção do logo.
  */
+
+let _cancelarListener = null;  // referência ao listener Firebase ativo
 
 /**
  * Exibe a view informada e oculta as demais.
+ * Ativa/desativa o listener em tempo real do painel.
  * @param {'index'|'painel'} nome
  */
 function mostrarView(nome) {
@@ -17,7 +19,14 @@ function mostrarView(nome) {
     });
 
     if (nome === 'painel') {
-        carregarDados();
+        // Inicia listener em tempo real ao entrar no painel
+        _cancelarListener = iniciarPainel();
+    } else {
+        // Cancela listener ao sair do painel (economiza conexões)
+        if (_cancelarListener) {
+            _cancelarListener();
+            _cancelarListener = null;
+        }
     }
 
     window.scrollTo(0, 0);
@@ -25,16 +34,14 @@ function mostrarView(nome) {
 
 /**
  * Injeta o logo Oilema em todas as tags <img class="logo-img">.
- * Deve ser chamado após o DOM estar pronto.
  */
 function injetarLogos() {
     document.querySelectorAll('img.logo-img').forEach(img => {
-        img.src = LOGO_OILEMA;   // LOGO_OILEMA vem de assets/logo.js
+        img.src    = LOGO_OILEMA;
         img.style.height = '70px';
     });
 }
 
-// Inicialização ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
     injetarLogos();
 });

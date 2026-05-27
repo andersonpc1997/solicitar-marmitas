@@ -2,22 +2,35 @@
  * database.js
  * Oilema Sementes — Controle de Marmitas
  *
- * Camada de persistência usando localStorage.
- * Todas as funções retornam valores diretos (compatíveis com await).
+ * Banco de dados em nuvem via Firebase Realtime Database.
+ * Dados compartilhados entre TODOS os dispositivos em tempo real.
+ *
+ * Depende de:
+ *   - assets/firebase-config.js  (credenciais do projeto)
+ *   - SDK Firebase (carregado no index.html)
  */
 
-const DB_KEY = 'pedidosMarmita';
+// ── Inicialização ────────────────────────────────────────────────
+firebase.initializeApp(FIREBASE_CONFIG);
+
+const _db    = firebase.database();
+const _REF   = 'pedidosMarmita';
+
+// ── Funções de acesso ────────────────────────────────────────────
 
 /**
- * Retorna todos os pedidos salvos.
- * @returns {Array} lista de pedidos
+ * Busca todos os pedidos (consulta única).
+ * @returns {Promise<Array>}
  */
-function dbGet() {
+async function dbGet() {
     try {
-        const raw = localStorage.getItem(DB_KEY);
-        return raw ? JSON.parse(raw) : [];
+        const snapshot = await _db.ref(_REF).get();
+        if (!snapshot.exists()) return [];
+        const data = snapshot.val();
+        // Firebase pode retornar objeto com índices numéricos
+        return Array.isArray(data) ? data : Object.values(data);
     } catch (e) {
-        console.error('[DB] Erro ao ler dados:', e);
+        console.error('[DB] Erro ao ler:', e);
         return [];
     }
 }
@@ -25,28 +38,54 @@ function dbGet() {
 /**
  * Salva a lista completa de pedidos.
  * @param {Array} pedidos
- * @returns {boolean} sucesso
+ * @returns {Promise<boolean>}
  */
-function dbSet(pedidos) {
+async function dbSet(pedidos) {
     try {
-        localStorage.setItem(DB_KEY, JSON.stringify(pedidos));
+        await _db.ref(_REF).set(pedidos);
         return true;
     } catch (e) {
-        console.error('[DB] Erro ao salvar dados:', e);
+        console.error('[DB] Erro ao salvar:', e);
         return false;
     }
 }
 
 /**
  * Apaga todos os pedidos do banco.
- * @returns {boolean} sucesso
+ * @returns {Promise<boolean>}
  */
-function dbDelete() {
+async function dbDelete() {
     try {
-        localStorage.removeItem(DB_KEY);
+        await _db.ref(_REF).remove();
         return true;
     } catch (e) {
-        console.error('[DB] Erro ao excluir dados:', e);
+        console.error('[DB] Erro ao excluir:', e);
         return false;
     }
+}
+
+/**
+ * Escuta mudanças em tempo real no banco.
+ * Chama o callback sempre que os dados mudam (qualquer máquina).
+ *
+ * @param {function(Array): void} callback
+ * @returns {function} função para cancelar o listener
+ */
+function dbEscutar(callback) {
+    const ref = _db.ref(_REF);
+
+    const handler = ref.on('value', snapshot => {
+        let pedidos = [];
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            pedidos = Array.isArray(data) ? data : Object.values(data);
+        }
+        callback(pedidos);
+    }, err => {
+        console.error('[DB] Erro no listener:', err);
+        callback([]);
+    });
+
+    // Retorna função de cancelamento
+    return () => ref.off('value', handler);
 }

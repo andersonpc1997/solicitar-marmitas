@@ -2,22 +2,22 @@
  * app.js
  * Oilema Sementes — Controle de Marmitas
  *
- * Lógica principal:
+ * Lógica principal (todas as chamadas ao banco são async/await):
  *  - Formulário de solicitação (view-index)
- *  - Painel de controle / tabela (view-painel)
+ *  - Painel em tempo real com Firebase listener
  *  - Filtros por cooperado e por data
  *  - Geração de PDF via window.print()
  */
 
 /* ================================================================
-   FORMULÁRIO — auto-preenchimento por placa e por fazenda
+   FORMULÁRIO — auto-preenchimento por placa / fazenda
    ================================================================ */
 
-function forcarMaiusculoEBuscarMotorista(input) {
+async function forcarMaiusculoEBuscarMotorista(input) {
     input.value = input.value.toUpperCase();
     const placaDigitada = input.value.trim();
     if (placaDigitada.length >= 3) {
-        const pedidos = dbGet();
+        const pedidos = await dbGet();
         const historico = pedidos.find(p => p.placa === placaDigitada);
         if (historico) {
             document.getElementById('nomeMotorista').value = historico.nome.toUpperCase();
@@ -25,11 +25,11 @@ function forcarMaiusculoEBuscarMotorista(input) {
     }
 }
 
-function forcarMaiusculoEBuscarCooperado(input) {
+async function forcarMaiusculoEBuscarCooperado(input) {
     input.value = input.value.toUpperCase();
     const fazendaDigitada = input.value.trim();
     if (fazendaDigitada.length >= 3) {
-        const pedidos = dbGet();
+        const pedidos = await dbGet();
         const vinculo = pedidos.find(p => p.fazenda.trim() === fazendaDigitada);
         if (vinculo) {
             document.getElementById('nomeCooperado').value = vinculo.cooperado.toUpperCase();
@@ -45,65 +45,101 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('formMarmitas');
     if (!form) return;
 
-    form.addEventListener('submit', function (event) {
+    form.addEventListener('submit', async function (event) {
         event.preventDefault();
 
         const msgSucesso   = document.getElementById('mensagem-sucesso');
         const msgErro      = document.getElementById('mensagem-erro');
         const msgDuplicado = document.getElementById('mensagem-duplicado');
+        const btnSubmit    = form.querySelector('.btn-submit');
 
-        // Oculta todas as mensagens
         [msgSucesso, msgErro, msgDuplicado].forEach(m => m.style.display = 'none');
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Salvando...';
 
-        const agora   = new Date();
-        const dataISO = agora.toISOString().split('T')[0];
-        const placa   = document.getElementById('placaVeiculo').value.toUpperCase().trim();
+        try {
+            const agora   = new Date();
+            const dataISO = agora.toISOString().split('T')[0];
+            const placa   = document.getElementById('placaVeiculo').value.toUpperCase().trim();
 
-        let pedidos = dbGet();
+            const pedidos = await dbGet();
 
-        // Verifica duplicidade no dia
-        const jaExiste = pedidos.some(p => p.placa === placa && p.dataISO === dataISO);
-        if (jaExiste) {
-            msgDuplicado.style.display = 'block';
-            return;
+            // Verifica duplicidade no dia
+            if (pedidos.some(p => p.placa === placa && p.dataISO === dataISO)) {
+                msgDuplicado.style.display = 'block';
+                return;
+            }
+
+            // Verifica horário limite (17:40)
+            const tempoAtual = agora.getHours() * 60 + agora.getMinutes();
+            if (tempoAtual > 17 * 60 + 40) {
+                msgErro.style.display = 'block';
+                return;
+            }
+
+            // Monta o registro
+            const nome      = document.getElementById('nomeMotorista').value.toUpperCase().trim();
+            const cooperado = document.getElementById('nomeCooperado').value.toUpperCase().trim();
+            const fazenda   = document.getElementById('nomeFazenda').value.toUpperCase().trim();
+            const quantidade = document.getElementById('quantidadeMarmitas').value;
+            const dataHoraExibicao =
+                agora.toLocaleDateString('pt-BR') + ' - ' +
+                agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            pedidos.unshift({ dataHoraExibicao, dataISO, nome, placa, cooperado, fazenda, quantidade });
+            await dbSet(pedidos);
+
+            msgSucesso.style.display = 'block';
+            form.reset();
+            document.getElementById('quantidadeMarmitas').value = '1';
+            setTimeout(() => { msgSucesso.style.display = 'none'; }, 3000);
+
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Registrar Solicitação';
         }
-
-        // Verifica horário limite (17:40)
-        const tempoAtual = agora.getHours() * 60 + agora.getMinutes();
-        const tempoLimite = 17 * 60 + 40;
-        if (tempoAtual > tempoLimite) {
-            msgErro.style.display = 'block';
-            return;
-        }
-
-        // Monta o registro
-        const nome      = document.getElementById('nomeMotorista').value.toUpperCase().trim();
-        const cooperado = document.getElementById('nomeCooperado').value.toUpperCase().trim();
-        const fazenda   = document.getElementById('nomeFazenda').value.toUpperCase().trim();
-        const quantidade = document.getElementById('quantidadeMarmitas').value;
-        const dataHoraExibicao =
-            agora.toLocaleDateString('pt-BR') + ' - ' +
-            agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-        pedidos.unshift({ dataHoraExibicao, dataISO, nome, placa, cooperado, fazenda, quantidade });
-        dbSet(pedidos);
-
-        msgSucesso.style.display = 'block';
-        form.reset();
-        document.getElementById('quantidadeMarmitas').value = '1';
-        setTimeout(() => { msgSucesso.style.display = 'none'; }, 3000);
     });
 });
 
 /* ================================================================
-   PAINEL — carregamento e renderização da tabela
+   PAINEL — listener em tempo real + filtros
    ================================================================ */
 
 let dadosAtuaisNaTabela = [];
 
-function carregarDados(pedidosFiltrados = null) {
-    const tbody  = document.getElementById('listaSolicitacoes');
-    const pedidos = pedidosFiltrados !== null ? pedidosFiltrados : dbGet();
+/**
+ * Inicia o listener Firebase para o painel.
+ * Chamado por ui.js ao navegar para 'painel'.
+ * @returns {function} função de cancelamento (repassada ao ui.js)
+ */
+function iniciarPainel() {
+    renderizarTabela([]); // limpa a tabela antes de carregar
+    document.getElementById('listaSolicitacoes').innerHTML =
+        '<tr><td colspan="6" class="empty-state">Carregando dados...</td></tr>';
+
+    return dbEscutar(pedidos => {
+        // Ao receber dados do Firebase, re-aplica filtros se ativos
+        const termoCooperado = document.getElementById('filtroCooperado')?.value.trim().toUpperCase();
+        const dataInicio     = document.getElementById('dataInicio')?.value;
+        const dataFim        = document.getElementById('dataFim')?.value;
+
+        if (termoCooperado || dataInicio || dataFim) {
+            const filtrados = filtrarPedidos(pedidos, termoCooperado, dataInicio, dataFim);
+            renderizarTabela(filtrados);
+        } else {
+            renderizarTabela(pedidos);
+        }
+    });
+}
+
+/**
+ * Renderiza os pedidos na tabela (função pura).
+ * @param {Array} pedidos
+ */
+function renderizarTabela(pedidos) {
+    const tbody = document.getElementById('listaSolicitacoes');
+    if (!tbody) return;
+
     dadosAtuaisNaTabela = pedidos;
 
     if (pedidos.length === 0) {
@@ -123,11 +159,29 @@ function carregarDados(pedidosFiltrados = null) {
     `).join('');
 }
 
+/**
+ * Aplica filtros sobre um array de pedidos.
+ */
+function filtrarPedidos(pedidos, termoCooperado, dataInicio, dataFim) {
+    return pedidos.filter(p => {
+        let okCoop = true;
+        if (termoCooperado) okCoop = p.cooperado?.includes(termoCooperado);
+
+        let okData = true;
+        const d = p.dataISO;
+        if (dataInicio && dataFim)  okData = d >= dataInicio && d <= dataFim;
+        else if (dataInicio)         okData = d >= dataInicio;
+        else if (dataFim)            okData = d <= dataFim;
+
+        return okCoop && okData;
+    });
+}
+
 /* ================================================================
-   PAINEL — filtros
+   PAINEL — botões de filtro
    ================================================================ */
 
-function aplicarFiltros() {
+async function aplicarFiltros() {
     const termoCooperado = document.getElementById('filtroCooperado').value.trim().toUpperCase();
     const dataInicio     = document.getElementById('dataInicio').value;
     const dataFim        = document.getElementById('dataFim').value;
@@ -137,37 +191,25 @@ function aplicarFiltros() {
         return;
     }
 
-    const pedidos = dbGet();
-    const resultados = pedidos.filter(p => {
-        let okCoop = true;
-        if (termoCooperado) okCoop = p.cooperado.includes(termoCooperado);
-
-        let okData = true;
-        const d = p.dataISO;
-        if (dataInicio && dataFim)   okData = d >= dataInicio && d <= dataFim;
-        else if (dataInicio)          okData = d >= dataInicio;
-        else if (dataFim)             okData = d <= dataFim;
-
-        return okCoop && okData;
-    });
-
-    carregarDados(resultados);
+    const pedidos  = await dbGet();
+    const filtrados = filtrarPedidos(pedidos, termoCooperado, dataInicio, dataFim);
+    renderizarTabela(filtrados);
 }
 
 function limparFiltro() {
     document.getElementById('filtroCooperado').value = '';
     document.getElementById('dataInicio').value      = '';
     document.getElementById('dataFim').value         = '';
-    carregarDados();
+    // O listener já vai re-renderizar automaticamente com todos os dados
 }
 
 /* ================================================================
-   PAINEL — limpar banco de dados
+   PAINEL — limpar banco
    ================================================================ */
 
-function limparBanco() {
+async function limparBanco() {
     if (confirm('Tem certeza que deseja apagar todo o histórico de marmitas?')) {
-        dbDelete();
+        await dbDelete();
         limparFiltro();
     }
 }
@@ -182,28 +224,16 @@ function gerarPDF() {
         return;
     }
 
-    const totalMarmitas = dadosAtuaisNaTabela.reduce(
-        (acc, p) => acc + parseInt(p.quantidade || 0), 0
-    );
+    const totalMarmitas  = dadosAtuaisNaTabela.reduce((acc, p) => acc + parseInt(p.quantidade || 0), 0);
     const totalRegistros = dadosAtuaisNaTabela.length;
 
     const agora = new Date();
-    const dataFormatada = agora.toLocaleDateString('pt-BR', {
-        day: '2-digit', month: '2-digit', year: 'numeric'
-    });
-    const horaFormatada = agora.toLocaleTimeString('pt-BR', {
-        hour: '2-digit', minute: '2-digit'
-    });
-
     document.getElementById('pdf-data-geracao').textContent =
-        `Emitido em ${dataFormatada} às ${horaFormatada}`;
+        `Emitido em ${agora.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' })} às ${agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })}`;
     document.getElementById('pdf-total-label').textContent =
         `🍱 ${totalMarmitas} marmitas · ${totalRegistros} registros`;
 
-    // Garante que o logo está injetado no cabeçalho PDF
-    document.querySelectorAll('img.logo-img').forEach(img => {
-        img.src = LOGO_OILEMA;
-    });
+    document.querySelectorAll('img.logo-img').forEach(img => { img.src = LOGO_OILEMA; });
 
     window.print();
 }
