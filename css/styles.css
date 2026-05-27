@@ -304,9 +304,13 @@ tr:hover { background-color: #f8f9fa; }
         margin: 12mm 14mm 18mm 14mm;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box !important; }
 
-    body {
+    /* Remove min-height e flex do body — principal causa da página em branco */
+    html, body {
+        height: auto !important;
+        min-height: 0 !important;
+        display: block !important;
         background-color: #ffffff !important;
         padding: 0 !important;
         margin: 0 !important;
@@ -316,11 +320,17 @@ tr:hover { background-color: #f8f9fa; }
         print-color-adjust: exact;
     }
 
-    #view-index { display: none !important; }
+    /* Oculta sem deixar altura residual */
+    #view-index {
+        display: none !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
 
     #view-painel {
         display: block !important;
         width: 100%;
+        height: auto !important;
     }
 
     .container-largo {
@@ -330,6 +340,7 @@ tr:hover { background-color: #f8f9fa; }
         width: 100% !important;
         border-top: none !important;
         border-radius: 0 !important;
+        height: auto !important;
     }
 
     .topo-acoes,
