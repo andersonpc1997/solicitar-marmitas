@@ -1,0 +1,443 @@
+/* ============================================================
+   Oilema Sementes — Controle de Marmitas
+   styles.css — Estilos globais + impressão (PDF)
+   ============================================================ */
+
+/* ---------- Base ---------- */
+body {
+    font-family: 'Ubuntu', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f7f9fa;
+    color: #445560;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* ---------- Container ---------- */
+.container {
+    background-color: #ffffff;
+    padding: 35px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(68, 85, 96, 0.08);
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+    border-top: 5px solid #f28130;
+}
+.container-largo { max-width: 1050px; }
+
+/* ---------- Logo & Cabeçalho ---------- */
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.logo-container img { height: 70px; }
+
+.header { text-align: center; margin-bottom: 30px; }
+.header h2 {
+    margin: 0;
+    color: #445560;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+.header p {
+    margin: 6px 0 0 0;
+    color: #f28130;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ---------- Botões de navegação ---------- */
+.btn-navegacao {
+    background-color: #445560;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+.btn-navegacao:hover {
+    background-color: #334049;
+    transform: translateY(-1px);
+}
+
+.topo-acoes {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    align-items: center;
+}
+.btn-voltar { background-color: #445560; margin-bottom: 0; }
+
+.btn-limpar {
+    background-color: #d93838;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+.btn-limpar:hover { background-color: #b52a2a; }
+
+/* ---------- Filtros ---------- */
+.filtro-container {
+    background-color: #f0f3f5;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+}
+.filtro-grupo { display: flex; flex-direction: column; gap: 6px; }
+.filtro-grupo label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #445560;
+    text-transform: uppercase;
+}
+.filtro-grupo input[type="date"],
+.filtro-grupo input[type="text"] {
+    padding: 10px 14px;
+    border: 1px solid #cbd5cc;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #445560;
+    background-color: #ffffff;
+}
+#filtroCooperado { width: 220px; }
+
+.btn-filtrar {
+    background-color: #445560;
+    color: white;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+.btn-filtrar:hover { background-color: #334049; }
+
+.btn-limpar-filtro {
+    background-color: #90a4ae;
+    color: white;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+.btn-limpar-filtro:hover { background-color: #78909c; }
+
+.btn-pdf {
+    background-color: #f28130;
+    color: white;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+.btn-pdf:hover { background-color: #d66a18; }
+
+/* ---------- Formulário ---------- */
+.form-group { margin-bottom: 20px; }
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #445560;
+    font-size: 14px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #cbd5cc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 15px;
+    color: #445560;
+    background-color: #ffffff;
+    font-family: inherit;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus {
+    border-color: #f28130;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(242, 129, 48, 0.15);
+}
+
+input.caps-lock { text-transform: uppercase; }
+
+.btn-submit {
+    width: 100%;
+    background-color: #f28130;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+.btn-submit:hover {
+    background-color: #d66a18;
+    transform: translateY(-1px);
+}
+
+/* ---------- Mensagens de feedback ---------- */
+#mensagem-sucesso {
+    display: none;
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #e6f4ea;
+    color: #137333;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+#mensagem-erro,
+#mensagem-erro-login,
+#mensagem-duplicado {
+    display: none;
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #fce8e6;
+    color: #c5221f;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: 600;
+    border: 1px solid #fad2cf;
+}
+
+/* ---------- Alerta de horário ---------- */
+.horario-alerta {
+    font-size: 13px;
+    color: #c5221f;
+    text-align: center;
+    margin-top: -15px;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+/* ---------- Tabela ---------- */
+.tabela-wrapper { width: 100%; overflow-x: auto; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 15px;
+    min-width: 700px;
+}
+
+th, td {
+    padding: 14px;
+    border-bottom: 1px solid #e0e6ed;
+    text-align: left;
+}
+
+th {
+    background-color: #445560;
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+tr:hover { background-color: #f8f9fa; }
+
+.empty-state {
+    text-align: center;
+    color: #90a4ae;
+    padding: 40px;
+    font-style: italic;
+}
+
+/* ============================================================
+   IMPRESSÃO / PDF
+   ============================================================ */
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 12mm 14mm 18mm 14mm;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #2c3e50;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    #view-index { display: none !important; }
+
+    #view-painel {
+        display: block !important;
+        width: 100%;
+    }
+
+    .container-largo {
+        box-shadow: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        border-top: none !important;
+        border-radius: 0 !important;
+    }
+
+    .topo-acoes,
+    .filtro-container { display: none !important; }
+
+    /* ── Cabeçalho PDF ── */
+    .pdf-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 4px solid #f28130;
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+    }
+    .pdf-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .pdf-header-logo { height: 52px; }
+    .pdf-header-titles { line-height: 1.2; }
+    .pdf-header-titles h1 {
+        margin: 0;
+        font-size: 18pt;
+        font-weight: 800;
+        color: #445560;
+        letter-spacing: -0.5px;
+    }
+    .pdf-header-titles span {
+        font-size: 9pt;
+        font-weight: 600;
+        color: #f28130;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .pdf-header-right { text-align: right; }
+    .pdf-header-right .pdf-badge {
+        background-color: #f28130;
+        color: #fff;
+        font-size: 8pt;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .pdf-header-right .pdf-date {
+        display: block;
+        margin-top: 5px;
+        font-size: 8pt;
+        color: #7f8c8d;
+    }
+
+    /* Ocultar cabeçalho original */
+    .logo-container,
+    .header { display: none !important; }
+
+    /* ── Tabela ── */
+    .tabela-wrapper { overflow: visible !important; }
+    table {
+        width: 100% !important;
+        min-width: 100% !important;
+        border-collapse: collapse;
+        font-size: 8.5pt;
+        margin-top: 0;
+        page-break-inside: auto;
+    }
+    thead { display: table-header-group; }
+    tr { page-break-inside: avoid; }
+    th {
+        background-color: #445560 !important;
+        color: #ffffff !important;
+        font-size: 7.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 9px 10px;
+        border: none;
+    }
+    th:first-child { border-radius: 0; }
+    td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #e0e6ed;
+        color: #2c3e50;
+        vertical-align: middle;
+    }
+    tbody tr:nth-child(even) td { background-color: #f4f7f9 !important; }
+    tbody tr:nth-child(odd)  td { background-color: #ffffff  !important; }
+    td strong { color: #445560; font-weight: 700; }
+
+    /* ── Rodapé PDF ── */
+    .pdf-footer {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        padding-top: 8px;
+        border-top: 2px solid #445560;
+        font-size: 7.5pt;
+        color: #7f8c8d;
+    }
+    .pdf-footer strong { color: #f28130; }
+    .pdf-footer-total {
+        background-color: #f28130 !important;
+        color: #fff !important;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 8pt;
+    }
+}

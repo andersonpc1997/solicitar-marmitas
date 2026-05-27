@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oilema Sementes - Controle de Marmitas</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- ============ VIEW: INDEX (Solicitação de Marmita) ============ -->
+    <div id="view-index">
+        <div class="container">
+            <div style="text-align: right;">
+                <button class="btn-navegacao" onclick="mostrarView('painel')">Painel Geral 📊</button>
+            </div>
+            <div class="logo-container">
+                <img class="logo-img" alt="Oilema Sementes">
+            </div>
+            <div class="header">
+                <h2>Controle de Refeições</h2>
+                <p>Solicitação de Marmita</p>
+            </div>
+            <div class="horario-alerta">🕒 Horário limite para pedidos: até as 17:40</div>
+            <form id="formMarmitas">
+                <div class="form-group">
+                    <label for="placaVeiculo">Placa do Veículo:</label>
+                    <input
+                        type="text"
+                        id="placaVeiculo"
+                        class="caps-lock"
+                        placeholder="EX: ABC1D23"
+                        oninput="forcarMaiusculoEBuscarMotorista(this)"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="nomeMotorista">Nome do Motorista:</label>
+                    <input
+                        type="text"
+                        id="nomeMotorista"
+                        class="caps-lock"
+                        placeholder="EX: JOÃO DA SILVA"
+                        oninput="this.value = this.value.toUpperCase()"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="nomeFazenda">Fazenda:</label>
+                    <input
+                        type="text"
+                        id="nomeFazenda"
+                        class="caps-lock"
+                        placeholder="EX: FAZENDA BOA VISTA"
+                        oninput="forcarMaiusculoEBuscarCooperado(this)"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="nomeCooperado">Cooperado (Origem):</label>
+                    <input
+                        type="text"
+                        id="nomeCooperado"
+                        class="caps-lock"
+                        placeholder="EX: COOPERATIVA AGRO XYZ"
+                        oninput="this.value = this.value.toUpperCase()"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="quantidadeMarmitas">Quantidade de Marmitas:</label>
+                    <input type="number" id="quantidadeMarmitas" min="1" value="1" required>
+                </div>
+                <button type="submit" class="btn-submit">Registrar Solicitação</button>
+            </form>
+            <div id="mensagem-sucesso">✅ Solicitação registrada com sucesso!</div>
+            <div id="mensagem-erro">⛔ Horário encerrado! Não é possível solicitar marmitas após as 17:40.</div>
+            <div id="mensagem-duplicado">⚠️ Atenção: Este veículo já possui uma solicitação registrada hoje!</div>
+        </div>
+    </div>
+
+
+    <!-- ============ VIEW: PAINEL ============ -->
+    <div id="view-painel" style="display:none;">
+        <div class="container container-largo">
+
+            <!-- Cabeçalho visível apenas no PDF -->
+            <div class="pdf-header" style="display:none;">
+                <div class="pdf-header-left">
+                    <img class="logo-img pdf-header-logo" alt="Oilema Sementes">
+                    <div class="pdf-header-titles">
+                        <h1>Oilema Sementes</h1>
+                        <span>Controle de Refeições — Registro Geral de Solicitações</span>
+                    </div>
+                </div>
+                <div class="pdf-header-right">
+                    <span class="pdf-badge">📄 Relatório Oficial</span>
+                    <span class="pdf-date" id="pdf-data-geracao"></span>
+                </div>
+            </div>
+
+            <div class="topo-acoes">
+                <button class="btn-navegacao btn-voltar" onclick="mostrarView('index')">⬅️ Voltar</button>
+                <button class="btn-limpar" onclick="limparBanco()">Limpar Histórico 🗑️</button>
+            </div>
+
+            <div class="logo-container">
+                <img class="logo-img" alt="Oilema Sementes">
+            </div>
+            <div class="header">
+                <h2>Painel de Controle</h2>
+                <p>Registro Geral de Solicitações</p>
+            </div>
+
+            <div class="filtro-container">
+                <div class="filtro-grupo">
+                    <label for="filtroCooperado">Cooperado:</label>
+                    <input
+                        type="text"
+                        id="filtroCooperado"
+                        class="caps-lock"
+                        placeholder="BUSCAR COOPERADO..."
+                        oninput="this.value = this.value.toUpperCase()">
+                </div>
+                <div class="filtro-grupo">
+                    <label for="dataInicio">Data Inicial:</label>
+                    <input type="date" id="dataInicio">
+                </div>
+                <div class="filtro-grupo">
+                    <label for="dataFim">Data Final:</label>
+                    <input type="date" id="dataFim">
+                </div>
+                <button class="btn-filtrar" onclick="aplicarFiltros()">Filtrar 🔍</button>
+                <button class="btn-limpar-filtro" onclick="limparFiltro()">Mostrar Todos</button>
+                <button class="btn-pdf" onclick="gerarPDF()">Gerar PDF 📄</button>
+            </div>
+
+            <div class="tabela-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data e Hora</th>
+                            <th>Motorista</th>
+                            <th>Placa</th>
+                            <th>Cooperado</th>
+                            <th>Fazenda</th>
+                            <th>Qtd</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaSolicitacoes"></tbody>
+                </table>
+            </div>
+
+            <!-- Rodapé visível apenas no PDF -->
+            <div class="pdf-footer" style="display:none;" id="pdf-rodape">
+                <div>
+                    Emitido por <strong>Oilema Sementes</strong> &nbsp;|&nbsp;
+                    Documento gerado automaticamente pelo sistema de controle de marmitas
+                </div>
+                <div class="pdf-footer-total" id="pdf-total-label">Total: 0 marmitas</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ============ SCRIPTS ============ -->
+    <!-- 1. Logo (base64 — deve vir antes dos outros scripts) -->
+    <script src="assets/logo.js"></script>
+    <!-- 2. Banco de dados (localStorage) -->
+    <script src="js/database.js"></script>
+    <!-- 3. Navegação e UI -->
+    <script src="js/ui.js"></script>
+    <!-- 4. Lógica principal da aplicação -->
+    <script src="js/app.js"></script>
+
+</body>
+</html>
