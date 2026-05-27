@@ -6,11 +6,11 @@
  *     Veja o arquivo LEIA-ME.md para instruções passo a passo.
  */
 const FIREBASE_CONFIG = {
-    apiKey:            "COLE_SUA_API_KEY_AQUI",
-    authDomain:        "SEU_PROJETO.firebaseapp.com",
-    databaseURL:       "https://SEU_PROJETO-default-rtdb.firebaseio.com",
-    projectId:         "SEU_PROJETO",
-    storageBucket:     "SEU_PROJETO.appspot.com",
-    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-    appId:             "SEU_APP_ID"
+    apiKey:            "AIzaSyBBbZq0obh9QWTccZSIyQCXKbJI4_AXFPQ",
+    authDomain:        "oilema-marmitas.firebaseapp.com",
+    databaseURL:       "https://oilema-marmitas-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:         "oilema-marmitas",
+    storageBucket:     "oilema-marmitas.firebasestorage.app",
+    messagingSenderId: "644651134486",
+    appId:             "1:644651134486:web:d2f3b1eb40f2fc398f0f37"
 };
