@@ -1,72 +1,91 @@
 /**
- * database.js — Oilema Sementes
- * Firebase Realtime Database: pedidos + usuários
+ * database.js
+ * Oilema Sementes — Controle de Marmitas
+ *
+ * Banco de dados em nuvem via Firebase Realtime Database.
+ * Dados compartilhados entre TODOS os dispositivos em tempo real.
+ *
+ * Depende de:
+ *   - assets/firebase-config.js  (credenciais do projeto)
+ *   - SDK Firebase (carregado no index.html)
  */
 
+// ── Inicialização ────────────────────────────────────────────────
 firebase.initializeApp(FIREBASE_CONFIG);
-const _db        = firebase.database();
-const _REF       = 'pedidosMarmita';
-const _USERS_REF = 'usuarios';
 
-/* ================================================================
-   PEDIDOS
-   ================================================================ */
+const _db    = firebase.database();
+const _REF   = 'pedidosMarmita';
+
+// ── Funções de acesso ────────────────────────────────────────────
+
+/**
+ * Busca todos os pedidos (consulta única).
+ * @returns {Promise<Array>}
+ */
 async function dbGet() {
     try {
-        const snap = await _db.ref(_REF).get();
-        if (!snap.exists()) return [];
-        const d = snap.val();
-        return Array.isArray(d) ? d : Object.values(d);
-    } catch (e) { console.error('[DB] dbGet:', e); return []; }
+        const snapshot = await _db.ref(_REF).get();
+        if (!snapshot.exists()) return [];
+        const data = snapshot.val();
+        // Firebase pode retornar objeto com índices numéricos
+        return Array.isArray(data) ? data : Object.values(data);
+    } catch (e) {
+        console.error('[DB] Erro ao ler:', e);
+        return [];
+    }
 }
 
+/**
+ * Salva a lista completa de pedidos.
+ * @param {Array} pedidos
+ * @returns {Promise<boolean>}
+ */
 async function dbSet(pedidos) {
-    try { await _db.ref(_REF).set(pedidos); return true; }
-    catch (e) { console.error('[DB] dbSet:', e); return false; }
+    try {
+        await _db.ref(_REF).set(pedidos);
+        return true;
+    } catch (e) {
+        console.error('[DB] Erro ao salvar:', e);
+        return false;
+    }
 }
 
+/**
+ * Apaga todos os pedidos do banco.
+ * @returns {Promise<boolean>}
+ */
 async function dbDelete() {
-    try { await _db.ref(_REF).remove(); return true; }
-    catch (e) { console.error('[DB] dbDelete:', e); return false; }
+    try {
+        await _db.ref(_REF).remove();
+        return true;
+    } catch (e) {
+        console.error('[DB] Erro ao excluir:', e);
+        return false;
+    }
 }
 
+/**
+ * Escuta mudanças em tempo real no banco.
+ * Chama o callback sempre que os dados mudam (qualquer máquina).
+ *
+ * @param {function(Array): void} callback
+ * @returns {function} função para cancelar o listener
+ */
 function dbEscutar(callback) {
     const ref = _db.ref(_REF);
-    ref.on('value', snap => {
+
+    const handler = ref.on('value', snapshot => {
         let pedidos = [];
-        if (snap.exists()) {
-            const d = snap.val();
-            pedidos = Array.isArray(d) ? d : Object.values(d);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            pedidos = Array.isArray(data) ? data : Object.values(data);
         }
         callback(pedidos);
-    }, err => { console.error('[DB] listener:', err); callback([]); });
-    return () => ref.off('value');
-}
+    }, err => {
+        console.error('[DB] Erro no listener:', err);
+        callback([]);
+    });
 
-/* ================================================================
-   USUÁRIOS
-   ================================================================ */
-async function dbGetUsuarios() {
-    try {
-        const snap = await _db.ref(_USERS_REF).get();
-        if (!snap.exists()) return [];
-        return Object.entries(snap.val()).map(([id, v]) => ({ id, ...v }));
-    } catch (e) { console.error('[DB] dbGetUsuarios:', e); return []; }
-}
-
-async function dbCriarUsuario(dados) {
-    try {
-        const ref = await _db.ref(_USERS_REF).push(dados);
-        return ref.key;
-    } catch (e) { console.error('[DB] dbCriarUsuario:', e); return null; }
-}
-
-async function dbAtualizarUsuario(id, dados) {
-    try { await _db.ref(`${_USERS_REF}/${id}`).update(dados); return true; }
-    catch (e) { console.error('[DB] dbAtualizarUsuario:', e); return false; }
-}
-
-async function dbDeletarUsuario(id) {
-    try { await _db.ref(`${_USERS_REF}/${id}`).remove(); return true; }
-    catch (e) { console.error('[DB] dbDeletarUsuario:', e); return false; }
+    // Retorna função de cancelamento
+    return () => ref.off('value', handler);
 }
