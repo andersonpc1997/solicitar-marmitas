@@ -452,3 +452,339 @@ tr:hover { background-color: #f8f9fa; }
         font-size: 8pt;
     }
 }
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+#view-login .container { max-width: 420px; }
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 12px;
+    color: #90a4ae;
+}
+
+/* ============================================================
+   BARRA DE USUÁRIO (aparece em index, painel, admin)
+   ============================================================ */
+.barra-usuario {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f0f3f5;
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.barra-usuario-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #445560;
+    font-weight: 600;
+}
+
+.barra-usuario-info .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: #445560;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.barra-usuario-acoes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-barra {
+    border: none;
+    padding: 7px 16px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-barra-painel  { background-color: #445560; color: #fff; }
+.btn-barra-painel:hover { background-color: #334049; }
+
+.btn-barra-admin   { background-color: #f28130; color: #fff; }
+.btn-barra-admin:hover { background-color: #d66a18; }
+
+.btn-barra-sair    { background-color: #e8edf0; color: #445560; }
+.btn-barra-sair:hover { background-color: #d0d9e0; }
+
+.btn-barra-voltar-index { background-color: #445560; color: #fff; }
+.btn-barra-voltar-index:hover { background-color: #334049; }
+
+/* ============================================================
+   ADMIN — containers e seções
+   ============================================================ */
+.container-admin { max-width: 860px; }
+
+.admin-section {
+    background-color: #f7f9fa;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border-left: 4px solid #445560;
+}
+
+.admin-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #445560;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.admin-danger { border-left-color: #d93838; }
+.admin-danger h3 { color: #d93838; }
+
+/* ── Cards de usuário ── */
+.user-card {
+    background-color: #fff;
+    border: 1px solid #e0e6ed;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.user-card.user-inativo { opacity: 0.55; }
+
+.user-card-nome {
+    font-weight: 700;
+    color: #445560;
+    font-size: 15px;
+}
+
+.user-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.user-login {
+    font-size: 13px;
+    color: #78909c;
+}
+
+.badge-role, .badge-status {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.badge-admin  { background-color: #fff3e0; color: #e65100; }
+.badge-user   { background-color: #e8f5e9; color: #2e7d32; }
+.badge-ativo  { background-color: #e8f5e9; color: #2e7d32; }
+.badge-inativo{ background-color: #fce8e6; color: #c5221f; }
+
+.user-card-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn-acao {
+    border: none;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.btn-toggle  { background-color: #e0e6ed; color: #445560; }
+.btn-toggle:hover { background-color: #c8d4dc; }
+
+.btn-senha   { background-color: #e8f0fe; color: #1967d2; }
+.btn-senha:hover { background-color: #c5d5f8; }
+
+.btn-deletar { background-color: #fce8e6; color: #c5221f; }
+.btn-deletar:hover { background-color: #f5c6c3; }
+
+/* ── Formulário novo usuário ── */
+#formNovoUsuario {
+    background-color: #fff;
+    border: 1px dashed #cbd5cc;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 14px;
+    display: none;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+#btnNovoUsuario {
+    background-color: #445560;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    margin-top: 14px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+#btnNovoUsuario:hover { background-color: #334049; }
+
+#btnSalvarUsuario {
+    width: 100%;
+    background-color: #f28130;
+    color: white;
+    padding: 13px;
+    border: none;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 14px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+#btnSalvarUsuario:hover { background-color: #d66a18; }
+
+/* ── Botão de perigo ── */
+.btn-perigo {
+    background-color: #d93838;
+    color: white;
+    border: none;
+    padding: 13px 28px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.btn-perigo:hover { background-color: #b52a2a; }
+
+/* ============================================================
+   MOBILE RESPONSIVO (≤ 767px)
+   ============================================================ */
+@media (max-width: 767px) {
+
+    body {
+        padding: 12px;
+        justify-content: flex-start;
+        padding-top: 20px;
+    }
+
+    .container {
+        padding: 22px 18px;
+        border-radius: 12px;
+    }
+
+    .container-largo,
+    .container-admin { max-width: 100%; }
+
+    /* Cabeçalho menor */
+    .logo-container img { height: 55px; }
+    .header h2 { font-size: 18px; }
+    .header p  { font-size: 12px; }
+
+    /* Barra de usuário */
+    .barra-usuario { padding: 8px 12px; }
+    .barra-usuario-info { font-size: 12px; }
+    .btn-barra { padding: 6px 12px; font-size: 11px; }
+
+    /* Filtros empilhados */
+    .filtro-container {
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px;
+    }
+    .filtro-container .filtro-grupo,
+    .filtro-container input,
+    .filtro-container button { width: 100%; box-sizing: border-box; }
+    #filtroCooperado { width: 100% !important; }
+
+    /* Botões de topo em coluna */
+    .topo-acoes { flex-direction: column; gap: 8px; align-items: stretch; }
+    .topo-acoes button { width: 100%; }
+
+    /* ── Tabela → Cards no mobile ── */
+    .tabela-wrapper { overflow: visible; }
+
+    table         { min-width: 0 !important; }
+    table, thead, tbody, th, td, tr { display: block; width: 100%; }
+    thead tr      { display: none; }
+
+    tbody tr {
+        background: #fff;
+        border: 1px solid #e0e6ed;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(68,85,96,0.06);
+    }
+
+    tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        border-bottom: 1px solid #f0f3f5;
+        font-size: 13px;
+        border-radius: 0;
+    }
+
+    tbody td:last-child { border-bottom: none; }
+
+    tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #445560;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        flex-shrink: 0;
+        margin-right: 10px;
+    }
+
+    tbody td.empty-state::before { display: none; }
+    tbody td.empty-state { justify-content: center; }
+
+    /* Admin cards no mobile */
+    .user-card { flex-direction: column; align-items: flex-start; }
+    .user-card-acoes { width: 100%; justify-content: flex-end; }
+
+    .form-row { grid-template-columns: 1fr; }
+}
