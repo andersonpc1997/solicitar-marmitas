@@ -1,35 +1,23 @@
 /**
  * ui.js — Oilema Sementes
- * Navegação entre views com verificação de autenticação
+ * Navegação entre views — sem autenticação
+ * Painel Admin acessível via URL: ?admin=1
  */
 
 let _cancelarListener = null;
-const _TODAS_VIEWS = ['login', 'index', 'painel', 'admin'];
+const _TODAS_VIEWS = ['index', 'painel', 'admin'];
 
 /* ── Troca de view ───────────────────────────────────────────── */
 function mostrarView(nome) {
-    // Cancela listener anterior
     if (_cancelarListener) { _cancelarListener(); _cancelarListener = null; }
 
-    // Verifica autenticação para views protegidas
-    if (nome !== 'login') {
-        const user = getUsuarioLogado();
-        if (!user) { _exibirView('login'); return; }
-        if (nome === 'admin' && user.role !== 'admin') {
-            alert('Acesso restrito a administradores.');
-            _exibirView('index');
-            _atualizarBarras();
-            return;
-        }
-    }
-
     _exibirView(nome);
-    _atualizarBarras();
+    _atualizarBottomNav(nome);
 
     if (nome === 'painel') _cancelarListener = iniciarPainel();
     if (nome === 'admin')  carregarPaginaAdmin();
 
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function _exibirView(nome) {
@@ -39,16 +27,14 @@ function _exibirView(nome) {
     });
 }
 
-/* ── Atualiza barras de usuário em todas as views ────────────── */
-function _atualizarBarras() {
-    const user = getUsuarioLogado();
-    if (!user) return;
-
-    document.querySelectorAll('.barra-usuario-nome').forEach(el => {
-        el.textContent = user.nome;
-    });
-    document.querySelectorAll('.barra-btn-admin').forEach(el => {
-        el.style.display = user.role === 'admin' ? 'inline-flex' : 'none';
+/* ── Atualiza estado ativo no bottom nav ─────────────────────── */
+function _atualizarBottomNav(viewAtiva) {
+    document.querySelectorAll('.bottom-nav').forEach(nav => {
+        nav.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+            const onclick = btn.getAttribute('onclick') || '';
+            if (onclick.includes(`'${viewAtiva}'`)) btn.classList.add('active');
+        });
     });
 }
 
@@ -56,16 +42,20 @@ function _atualizarBarras() {
 function injetarLogos() {
     document.querySelectorAll('img.logo-img').forEach(img => {
         img.src = LOGO_OILEMA;
-        img.style.height = '70px';
     });
 }
 
 /* ── Inicialização ───────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     injetarLogos();
-    await inicializarSistema();  // cria admin padrão se necessário
 
-    // Se já há sessão ativa, vai direto para index
-    const user = getUsuarioLogado();
-    mostrarView(user ? 'index' : 'login');
+    // Acesso admin via URL: ?admin=1
+    const params = new URLSearchParams(location.search);
+    if (params.get('admin') === '1') {
+        // Mostra botões de admin na nav
+        document.querySelectorAll('.btn-nav-admin').forEach(el => el.style.display = '');
+        mostrarView('admin');
+    } else {
+        mostrarView('index');
+    }
 });
