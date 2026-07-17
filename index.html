@@ -2,169 +2,334 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oilema Sementes - Controle de Marmitas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oilema Sementes — Controle de Marmitas</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-    <!-- ============ VIEW: INDEX (Solicitação de Marmita) ============ -->
-    <div id="view-index">
-        <div class="container">
-            <div style="text-align: right;">
-                <button class="btn-navegacao" onclick="mostrarView('painel')">Painel Geral 📊</button>
-            </div>
-            <div class="logo-container">
-                <img class="logo-img" alt="Oilema Sementes">
-            </div>
-            <div class="header">
-                <h2>Controle de Refeições</h2>
-                <p>Solicitação de Marmita</p>
-            </div>
-            <div class="horario-alerta">🕒 Horário limite para pedidos: até as 17:40</div>
-            <form id="formMarmitas">
-                <div class="form-group">
-                    <label for="placaVeiculo">Placa do Veículo:</label>
-                    <input type="text" id="placaVeiculo" class="caps-lock"
-                        placeholder="EX: ABC1D23"
-                        oninput="forcarMaiusculoEBuscarMotorista(this)" required>
-                </div>
-                <div class="form-group">
-                    <label for="nomeMotorista">Nome do Motorista:</label>
-                    <input type="text" id="nomeMotorista" class="caps-lock"
-                        placeholder="EX: JOÃO DA SILVA"
-                        oninput="this.value = this.value.toUpperCase()" required>
-                </div>
-                <div class="form-group">
-                    <label for="nomeFazenda">Fazenda:</label>
-                    <input type="text" id="nomeFazenda" class="caps-lock"
-                        placeholder="EX: FAZENDA BOA VISTA"
-                        oninput="forcarMaiusculoEBuscarCooperado(this)" required>
-                </div>
-                <div class="form-group">
-                    <label for="nomeCooperado">Cooperado (Origem):</label>
-                    <input type="text" id="nomeCooperado" class="caps-lock"
-                        placeholder="EX: COOPERATIVA AGRO XYZ"
-                        oninput="this.value = this.value.toUpperCase()" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantidadeMarmitas">Quantidade de Marmitas:</label>
-                    <input type="number" id="quantidadeMarmitas" min="1" value="1" required>
-                </div>
-                <button type="submit" class="btn-submit">Registrar Solicitação</button>
-            </form>
-            <div id="mensagem-sucesso">✅ Solicitação registrada com sucesso!</div>
-            <div id="mensagem-erro">⛔ Horário encerrado! Não é possível solicitar marmitas após as 17:40.</div>
-            <div id="mensagem-duplicado">⚠️ Atenção: Este veículo já possui uma solicitação registrada hoje!</div>
+<!-- ══════════════════════════════════════════════════════════
+     VIEW: INDEX (Solicitação de Marmita)
+     ══════════════════════════════════════════════════════════ -->
+<div id="view-index" class="view" style="display:none;">
+
+    <header class="topbar">
+        <div class="topbar-brand">
+            <img class="logo-img topbar-logo" alt="Oilema Sementes">
+            <span class="topbar-title">Controle de Marmitas</span>
         </div>
-    </div>
+        <nav class="topbar-nav">
+            <button class="btn-nav btn-nav-admin" style="display:none;"
+                onclick="mostrarView('admin')">⚙️ Admin</button>
+            <button class="btn-nav btn-nav-secondary"
+                onclick="mostrarView('painel')">📊 Painel</button>
+        </nav>
+    </header>
 
+    <main class="main-content">
+        <div class="page-card">
+            <div class="page-header">
+                <h2>Solicitação de Marmita</h2>
+                <div class="horario-alerta">🕒 Pedidos até as 17:40</div>
+            </div>
 
-    <!-- ============ VIEW: PAINEL ============ -->
-    <div id="view-painel" style="display:none;">
-        <div class="container container-largo">
-
-            <!-- Cabeçalho visível apenas no PDF -->
-            <div class="pdf-header" style="display:none;">
-                <div class="pdf-header-left">
-                    <img class="logo-img pdf-header-logo" alt="Oilema Sementes">
-                    <div class="pdf-header-titles">
-                        <h1>Oilema Sementes</h1>
-                        <span>Controle de Refeições — Registro Geral de Solicitações</span>
+            <form id="formMarmitas">
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label for="placaVeiculo">Placa do Veículo</label>
+                        <input type="text" id="placaVeiculo" class="caps-lock"
+                            placeholder="EX: ABC1D23"
+                            oninput="forcarMaiusculoEBuscarMotorista(this)" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nomeMotorista">Nome do Motorista</label>
+                        <input type="text" id="nomeMotorista" class="caps-lock"
+                            placeholder="EX: JOÃO DA SILVA"
+                            oninput="this.value = this.value.toUpperCase()" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nomeFazenda">Fazenda</label>
+                        <input type="text" id="nomeFazenda" class="caps-lock"
+                            placeholder="EX: FAZENDA BOA VISTA"
+                            oninput="forcarMaiusculoEBuscarCooperado(this)" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nomeCooperado">Cooperado (Origem)</label>
+                        <input type="text" id="nomeCooperado" class="caps-lock"
+                            placeholder="EX: COOPERATIVA AGRO XYZ"
+                            oninput="this.value = this.value.toUpperCase()" required>
+                    </div>
+                    <div class="field-group field-group-qty">
+                        <label for="quantidadeMarmitas">Quantidade de Marmitas</label>
+                        <div class="qty-input-wrapper">
+                            <button type="button" class="qty-btn" onclick="ajustarQty(-1)">−</button>
+                            <input type="number" id="quantidadeMarmitas" min="1" value="1" required>
+                            <button type="button" class="qty-btn" onclick="ajustarQty(1)">+</button>
+                        </div>
                     </div>
                 </div>
-                <div class="pdf-header-right">
-                    <span class="pdf-badge">📄 Relatório Oficial</span>
-                    <span class="pdf-date" id="pdf-data-geracao"></span>
-                </div>
-            </div>
+                <button type="submit" class="btn-primary btn-submit-form">
+                    🍱 Registrar Solicitação
+                </button>
+            </form>
 
-            <div class="topo-acoes">
-                <button class="btn-navegacao btn-voltar" onclick="mostrarView('index')">⬅️ Voltar</button>
-                <button class="btn-limpar" onclick="limparBanco()">Limpar Histórico 🗑️</button>
-            </div>
+            <div id="mensagem-sucesso" class="msg msg-sucesso" style="display:none;">✅ Solicitação registrada com sucesso!</div>
+            <div id="mensagem-erro"    class="msg msg-erro"    style="display:none;">⛔ Horário encerrado! Pedidos encerrados após as 17:40.</div>
+            <div id="mensagem-duplicado" class="msg msg-aviso" style="display:none;">⚠️ Este veículo já possui uma solicitação registrada hoje!</div>
+        </div>
+    </main>
 
-            <div class="logo-container">
-                <img class="logo-img" alt="Oilema Sementes">
-            </div>
-            <div class="header">
-                <h2>Painel de Controle</h2>
-                <p>Registro Geral de Solicitações</p>
-            </div>
+    <nav class="bottom-nav">
+        <button class="bottom-nav-btn active" onclick="mostrarView('index')">
+            <span class="bnav-icon">🍱</span><span class="bnav-label">Pedido</span>
+        </button>
+        <button class="bottom-nav-btn" onclick="mostrarView('painel')">
+            <span class="bnav-icon">📊</span><span class="bnav-label">Painel</span>
+        </button>
+        <button class="bottom-nav-btn btn-nav-admin" style="display:none;" onclick="mostrarView('admin')">
+            <span class="bnav-icon">⚙️</span><span class="bnav-label">Admin</span>
+        </button>
+    </nav>
+</div>
 
-            <div class="filtro-container">
-                <div class="filtro-grupo">
-                    <label for="filtroCooperado">Cooperado:</label>
-                    <input type="text" id="filtroCooperado" class="caps-lock"
-                        placeholder="BUSCAR COOPERADO..."
-                        oninput="this.value = this.value.toUpperCase()">
-                </div>
-                <div class="filtro-grupo">
-                    <label for="dataInicio">Data Inicial:</label>
-                    <input type="date" id="dataInicio">
-                </div>
-                <div class="filtro-grupo">
-                    <label for="dataFim">Data Final:</label>
-                    <input type="date" id="dataFim">
-                </div>
-                <button class="btn-filtrar" onclick="aplicarFiltros()">Filtrar 🔍</button>
-                <button class="btn-limpar-filtro" onclick="limparFiltro()">Mostrar Todos</button>
-                <button class="btn-pdf" onclick="gerarPDF()">Gerar PDF 📄</button>
-            </div>
 
-            <div class="tabela-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data e Hora</th>
-                            <th>Motorista</th>
-                            <th>Placa</th>
-                            <th>Cooperado</th>
-                            <th>Fazenda</th>
-                            <th>Qtd</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaSolicitacoes">
-                        <tr><td colspan="6" class="empty-state">Carregando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+<!-- ══════════════════════════════════════════════════════════
+     VIEW: PAINEL DE CONTROLE
+     ══════════════════════════════════════════════════════════ -->
+<div id="view-painel" class="view" style="display:none;">
 
-            <!-- Rodapé visível apenas no PDF -->
-            <div class="pdf-footer" style="display:none;" id="pdf-rodape">
-                <div>
-                    Emitido por <strong>Oilema Sementes</strong> &nbsp;|&nbsp;
-                    Documento gerado automaticamente pelo sistema de controle de marmitas
-                </div>
-                <div class="pdf-footer-total" id="pdf-total-label">Total: 0 marmitas</div>
+    <!-- Cabeçalho apenas no PDF -->
+    <div class="pdf-header" style="display:none;">
+        <div class="pdf-header-left">
+            <img class="logo-img pdf-header-logo" alt="Oilema Sementes">
+            <div class="pdf-header-titles">
+                <h1>Oilema Sementes</h1>
+                <span>Controle de Refeições — Registro Geral de Solicitações</span>
             </div>
-
+        </div>
+        <div class="pdf-header-right">
+            <span class="pdf-badge">📄 Relatório Oficial</span>
+            <span class="pdf-date" id="pdf-data-geracao"></span>
         </div>
     </div>
 
-    <!-- ============================================================
-         SCRIPTS — ordem de carregamento é importante!
-         ============================================================ -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <img class="logo-img topbar-logo" alt="Oilema Sementes">
+            <span class="topbar-title">Painel de Controle</span>
+        </div>
+        <nav class="topbar-nav">
+            <button class="btn-nav btn-nav-admin" style="display:none;"
+                onclick="mostrarView('admin')">⚙️ Admin</button>
+            <button class="btn-nav btn-nav-ghost"
+                onclick="mostrarView('index')">⬅️ Voltar</button>
+        </nav>
+    </header>
 
-    <!-- 1. Firebase SDK (CDN — não requer instalação) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <main class="main-content main-content-wide">
 
-    <!-- 2. Configuração do Firebase (edite assets/firebase-config.js) -->
-    <script src="assets/firebase-config.js"></script>
+        <div class="stats-bar">
+            <div class="stat-card">
+                <span class="stat-value" id="statTotal">—</span>
+                <span class="stat-label">Marmitas Hoje</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="statRegistros">—</span>
+                <span class="stat-label">Registros</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="statPeriodo">—</span>
+                <span class="stat-label">Período</span>
+            </div>
+        </div>
 
-    <!-- 3. Logo Oilema (base64 embutida) -->
-    <script src="assets/logo.js"></script>
+        <div class="filtro-card">
+            <div class="filtro-row">
+                <div class="field-group filtro-field">
+                    <label>Cooperado</label>
+                    <input type="text" id="filtroCooperado" class="caps-lock"
+                        placeholder="Buscar cooperado..."
+                        oninput="this.value = this.value.toUpperCase()">
+                </div>
+                <div class="field-group filtro-field">
+                    <label>Data Inicial</label>
+                    <input type="date" id="dataInicio">
+                </div>
+                <div class="field-group filtro-field">
+                    <label>Data Final</label>
+                    <input type="date" id="dataFim">
+                </div>
+            </div>
+            <div class="filtro-actions">
+                <button class="btn-filtrar"      onclick="aplicarFiltros()">🔍 Filtrar</button>
+                <button class="btn-limpar-filtro" onclick="limparFiltro()">✕ Limpar</button>
+                <button class="btn-pdf"           onclick="gerarPDF()">📄 Gerar PDF</button>
+            </div>
+        </div>
 
-    <!-- 4. Banco de dados -->
-    <script src="js/database.js"></script>
+        <!-- Tabela — 7 colunas (inclui Ações) -->
+        <div class="tabela-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data e Hora</th>
+                        <th>Motorista</th>
+                        <th>Placa</th>
+                        <th>Cooperado</th>
+                        <th>Fazenda</th>
+                        <th>Qtd</th>
+                        <th class="th-acoes">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="listaSolicitacoes">
+                    <tr><td colspan="7" class="empty-state">Carregando...</td></tr>
+                </tbody>
+            </table>
+        </div>
 
-    <!-- 5. Navegação e UI -->
-    <script src="js/ui.js"></script>
+        <div class="pdf-footer" style="display:none;">
+            <div>Emitido por <strong>Oilema Sementes</strong> &nbsp;|&nbsp; Documento gerado automaticamente pelo sistema de controle de marmitas</div>
+            <div class="pdf-footer-total" id="pdf-total-label">Total: 0 marmitas</div>
+        </div>
+    </main>
 
-    <!-- 6. Lógica da aplicação -->
-    <script src="js/app.js"></script>
+    <nav class="bottom-nav">
+        <button class="bottom-nav-btn" onclick="mostrarView('index')">
+            <span class="bnav-icon">🍱</span><span class="bnav-label">Pedido</span>
+        </button>
+        <button class="bottom-nav-btn active" onclick="mostrarView('painel')">
+            <span class="bnav-icon">📊</span><span class="bnav-label">Painel</span>
+        </button>
+        <button class="bottom-nav-btn btn-nav-admin" style="display:none;" onclick="mostrarView('admin')">
+            <span class="bnav-icon">⚙️</span><span class="bnav-label">Admin</span>
+        </button>
+    </nav>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL: EDIÇÃO DE REGISTRO
+     ══════════════════════════════════════════════════════════ -->
+<div id="modalEdicao" class="modal-overlay" style="display:none;" onclick="if(event.target===this)fecharModalEdicao()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>✏️ Editar Registro</h3>
+            <button class="modal-close" onclick="fecharModalEdicao()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-grid-2">
+                <div class="field-group" style="grid-column:span 2">
+                    <label>Data e Hora</label>
+                    <input type="text" id="editDataHora" placeholder="DD/MM/AAAA - HH:MM">
+                </div>
+                <div class="field-group">
+                    <label>Motorista</label>
+                    <input type="text" id="editNome" class="caps-lock"
+                        oninput="this.value=this.value.toUpperCase()">
+                </div>
+                <div class="field-group">
+                    <label>Placa</label>
+                    <input type="text" id="editPlaca" class="caps-lock"
+                        oninput="this.value=this.value.toUpperCase()">
+                </div>
+                <div class="field-group">
+                    <label>Cooperado</label>
+                    <input type="text" id="editCooperado" class="caps-lock"
+                        oninput="this.value=this.value.toUpperCase()">
+                </div>
+                <div class="field-group">
+                    <label>Fazenda</label>
+                    <input type="text" id="editFazenda" class="caps-lock"
+                        oninput="this.value=this.value.toUpperCase()">
+                </div>
+                <div class="field-group">
+                    <label>Quantidade</label>
+                    <input type="number" id="editQtd" min="1">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal-cancel" onclick="fecharModalEdicao()">Cancelar</button>
+            <button class="btn-modal-save"   id="btnSalvarEdicao" onclick="salvarEdicao()">✅ Salvar</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     VIEW: ADMINISTRAÇÃO — acesso via URL ?admin=1
+     ══════════════════════════════════════════════════════════ -->
+<div id="view-admin" class="view" style="display:none;">
+
+    <header class="topbar">
+        <div class="topbar-brand">
+            <img class="logo-img topbar-logo" alt="Oilema Sementes">
+            <span class="topbar-title">Painel Admin</span>
+        </div>
+        <nav class="topbar-nav">
+            <button class="btn-nav btn-nav-secondary"
+                onclick="mostrarView('painel')">📊 Painel</button>
+            <button class="btn-nav btn-nav-ghost"
+                onclick="mostrarView('index')">⬅️ Início</button>
+        </nav>
+    </header>
+
+    <main class="main-content main-content-admin">
+        <div class="admin-section admin-danger-section">
+            <div class="admin-section-header">
+                <div>
+                    <h3>⚠️ Manutenção</h3>
+                    <p class="admin-section-desc">
+                        Apaga <strong>todo o histórico de marmitas</strong> permanentemente. Ação irreversível.
+                    </p>
+                </div>
+            </div>
+            <button class="btn-danger" onclick="limparHistoricoAdmin()">
+                🗑️ Limpar Histórico de Marmitas
+            </button>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="bottom-nav-btn" onclick="mostrarView('index')">
+            <span class="bnav-icon">🍱</span><span class="bnav-label">Pedido</span>
+        </button>
+        <button class="bottom-nav-btn" onclick="mostrarView('painel')">
+            <span class="bnav-icon">📊</span><span class="bnav-label">Painel</span>
+        </button>
+        <button class="bottom-nav-btn active" onclick="mostrarView('admin')">
+            <span class="bnav-icon">⚙️</span><span class="bnav-label">Admin</span>
+        </button>
+    </nav>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+     ══════════════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="assets/firebase-config.js"></script>
+<script src="assets/logo.js"></script>
+<script src="js/database.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/app.js"></script>
+<script src="js/device.js"></script>
+
+<script>
+function ajustarQty(delta) {
+    const input = document.getElementById('quantidadeMarmitas');
+    const val = parseInt(input.value) + delta;
+    if (val >= 1) input.value = val;
+}
+
+// Fecha modal com ESC
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') fecharModalEdicao();
+});
+</script>
 
 </body>
 </html>

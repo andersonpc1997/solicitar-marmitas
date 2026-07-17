@@ -1,121 +1,135 @@
 # Oilema Sementes — Controle de Marmitas
-## Guia de Configuração do Firebase
-
-> **Por que o Firebase?**  
-> O `localStorage` (versão anterior) salva dados **apenas no navegador local**.  
-> O Firebase salva na nuvem e sincroniza entre **todas as máquinas em tempo real**.
-
----
-
-## PASSO 1 — Criar conta no Firebase
-
-1. Acesse **https://console.firebase.google.com**
-2. Faça login com uma conta Google (pode ser a conta da empresa)
-3. Clique em **"Adicionar projeto"**
-4. Dê um nome ao projeto, ex: `oilema-marmitas`
-5. Desative o Google Analytics (opcional) → clique em **"Criar projeto"**
-
----
-
-## PASSO 2 — Criar o Realtime Database
-
-1. No menu lateral, clique em **"Criação" → "Realtime Database"**
-2. Clique em **"Criar banco de dados"**
-3. Escolha o servidor mais próximo: **`us-central1`** ou **`southamerica-east1`** (São Paulo)
-4. Em "Regras de segurança", selecione **"Iniciar no modo de teste"** → Ativar
-
-> ⚠️ O modo de teste expira em 30 dias. Após isso, atualize as regras (veja o Passo 5).
-
----
-
-## PASSO 3 — Obter as credenciais do projeto
-
-1. No menu lateral, clique em ⚙️ **"Configurações do projeto"**
-2. Role até a seção **"Seus aplicativos"**
-3. Clique no ícone **`</>`** (Web)
-4. Dê um apelido ao app, ex: `marmitas-web` → clique em **"Registrar app"**
-5. O Firebase exibirá um bloco de código com `firebaseConfig`. Copie os valores.
-
----
-
-## PASSO 4 — Preencher o arquivo `assets/firebase-config.js`
-
-Abra o arquivo `assets/firebase-config.js` e substitua os placeholders:
-
-```js
-const FIREBASE_CONFIG = {
-    apiKey:            "AIzaSy...",           // ← cole aqui
-    authDomain:        "oilema-marmitas.firebaseapp.com",
-    databaseURL:       "https://oilema-marmitas-default-rtdb.firebaseio.com",
-    projectId:         "oilema-marmitas",
-    storageBucket:     "oilema-marmitas.appspot.com",
-    messagingSenderId: "123456789",
-    appId:             "1:123456789:web:abc..."
-};
-```
-
----
-
-## PASSO 5 — Regras de segurança do banco (após 30 dias)
-
-No console Firebase → Realtime Database → **"Regras"**, cole:
-
-```json
-{
-  "rules": {
-    "pedidosMarmita": {
-      ".read": true,
-      ".write": true
-    }
-  }
-}
-```
-
-Clique em **"Publicar"**.
-
----
-
-## PASSO 6 — Publicar no GitHub Pages
-
-1. Envie todos os arquivos para um repositório GitHub
-2. No repositório → **Settings → Pages**
-3. Em "Branch", selecione `main` e pasta `/root` → **Save**
-4. O site estará disponível em `https://seu-usuario.github.io/nome-do-repositorio`
+## Guia de Implantação e Funcionamento
 
 ---
 
 ## Estrutura de arquivos
 
 ```
-oilema-marmitas/
-├── index.html               ← Página principal
-├── favicon.svg              ← Ícone do site (marmita)
-├── LEIA-ME.md               ← Este guia
+/
+├── index.html                  ← Página única (todas as views)
+├── favicon.svg
 ├── css/
-│   └── styles.css           ← Estilos + impressão PDF
+│   └── styles.css              ← Estilos globais + responsivo + impressão
 ├── js/
-│   ├── database.js          ← Banco de dados Firebase (não editar)
-│   ├── ui.js                ← Navegação entre telas (não editar)
-│   └── app.js               ← Lógica do sistema (não editar)
+│   ├── device.js               ← Detecção automática de dispositivo (NOVO)
+│   ├── app.js                  ← Lógica principal (formulário, painel, PDF)
+│   ├── ui.js                   ← Navegação entre views + atualização de barras
+│   ├── auth.js                 ← Login, logout, sessão (SHA-256)
+│   ├── admin.js                ← Painel administrativo
+│   └── database.js             ← Firebase Realtime Database
 └── assets/
-    ├── firebase-config.js   ← ⚠️ EDITE ESTE ARQUIVO com suas credenciais
-    └── logo.js              ← Logo Oilema em base64 (não editar)
+    ├── firebase-config.js      ← Configuração do Firebase (NÃO publicar sem regras)
+    └── logo.js                 ← Logo Oilema em base64
 ```
 
 ---
 
-## Como funciona agora
+## Detecção automática de dispositivo
 
-| Situação | Antes (localStorage) | Agora (Firebase) |
-|---|---|---|
-| Solicitação de outra máquina | ❌ Não aparece no painel | ✅ Aparece em tempo real |
-| Painel atualiza automaticamente | ❌ Requer F5 | ✅ Atualiza sozinho |
-| Dados ao trocar de navegador | ❌ Perdidos | ✅ Mantidos na nuvem |
-| Funciona offline | ✅ Sim | ❌ Requer internet |
+O arquivo `js/device.js` detecta automaticamente o tipo de dispositivo ao carregar a página e adiciona uma classe no elemento `<html>`:
+
+| Dispositivo  | Classe aplicada     | Largura típica |
+|--------------|---------------------|----------------|
+| Celular      | `device-mobile`     | < 600px        |
+| Tablet       | `device-tablet`     | 600px – 1024px |
+| Computador   | `device-desktop`    | > 1024px       |
+
+Além da largura de tela, o sistema também analisa o **User Agent** do navegador, então um tablet acessando em modo desktop é identificado corretamente.
+
+### Layout por dispositivo
+
+**Celular (mobile):**
+- Topbar compacta — só logo e avatar
+- Navegação inferior fixa (bottom nav) com ícones: Pedido / Painel / Admin / Sair
+- Formulários em coluna única
+- Tabela do painel vira cards empilhados com rótulos
+- Botões grandes para toque fácil
+
+**Tablet:**
+- Topbar completa mas condensada
+- Bottom nav ativa
+- Grid de 2 colunas nos formulários
+
+**Computador (desktop):**
+- Topbar completa com nome do usuário, cargo e botões de navegação
+- Sem bottom nav
+- Grid de 2 colunas nos formulários
+- Tabela tradicional no painel
+
+### Modo debug (apenas para testes)
+
+Acesse `?debug=device` na URL para ver um badge no canto da tela com o tipo detectado e resolução:
+
+```
+https://seu-site.github.io/?debug=device
+```
 
 ---
 
-## Suporte
+## Primeiro acesso
 
-Dúvidas sobre configuração: consulte a documentação oficial em  
-**https://firebase.google.com/docs/database/web/start**
+Na primeira vez que o sistema for acessado, um usuário admin padrão é criado automaticamente:
+
+| Campo  | Valor      |
+|--------|------------|
+| Login  | `admin`    |
+| Senha  | `admin123` |
+
+**⚠️ Troque a senha imediatamente após o primeiro acesso!**
+
+Acesse: **⚙️ Admin → Usuários → Alterar Senha**
+
+---
+
+## Perfis de acesso
+
+| Perfil        | Solicitar marmita | Ver painel | Painel Admin |
+|---------------|:-----------------:|:----------:|:------------:|
+| 👤 Usuário    | ✅                | ✅         | ❌           |
+| 🔑 Admin      | ✅                | ✅         | ✅           |
+
+---
+
+## Firebase — Regras de segurança recomendadas
+
+Configure as regras no Console do Firebase para proteger os dados:
+
+```json
+{
+  "rules": {
+    "pedidosMarmita": {
+      ".read":  "auth != null",
+      ".write": "auth != null"
+    },
+    "usuarios": {
+      ".read":  "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
+```
+
+> **Nota:** O sistema usa autenticação própria (login/senha + sessionStorage), não o Firebase Auth. As regras acima são uma camada extra de proteção no banco.
+
+---
+
+## Implantação no GitHub Pages
+
+1. Faça push de todos os arquivos para o repositório
+2. Acesse: **Settings → Pages → Source: Deploy from branch → main**
+3. O site ficará disponível em: `https://seu-usuario.github.io/nome-do-repo/`
+
+---
+
+## Novidades desta versão
+
+- ✅ **Detecção automática de dispositivo** (mobile / tablet / desktop)
+- ✅ **Bottom navigation** no celular e tablet
+- ✅ **Topbar modernizada** com chip de usuário
+- ✅ **Stats bar** no painel (marmitas hoje, registros, período)
+- ✅ **Cards de tabela** no mobile com rótulos e destaque na primeira linha
+- ✅ **Botão +/−** para quantidade de marmitas (mais fácil no celular)
+- ✅ **Botão ver/ocultar senha** nos campos de senha
+- ✅ **Feedback tátil** (vibração) nos botões em dispositivos móveis
+- ✅ **iOS zoom fix** — inputs com font-size ≥ 16px para evitar zoom automático
