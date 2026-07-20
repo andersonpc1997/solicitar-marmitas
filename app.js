@@ -276,26 +276,43 @@ function iniciarPainel() {
     document.getElementById('listaSolicitacoes').innerHTML =
         '<tr><td colspan="8" class="empty-state">Carregando...</td></tr>';
 
-    // Padrão: exibe somente registros de HOJE
+    // Data de hoje em formato ISO — usada como padrão fixo
     const hoje = new Date().toISOString().split('T')[0];
 
-    // Preenche os campos de data com hoje
-    const elIni = document.getElementById('dataInicio');
-    const elFim = document.getElementById('dataFim');
-    if (elIni) elIni.value = hoje;
-    if (elFim) elFim.value = hoje;
+    // Preenche os campos de data (pode não funcionar se view ainda estiver oculta,
+    // por isso os campos são preenchidos E usamos 'hoje' como fallback no listener)
+    setTimeout(() => {
+        const elIni = document.getElementById('dataInicio');
+        const elFim = document.getElementById('dataFim');
+        if (elIni) elIni.value = hoje;
+        if (elFim) elFim.value = hoje;
+    }, 50);
+
     _atualizarBadgePainel(false);
 
     return dbEscutar(pedidos => {
         const coop = (document.getElementById('filtroCooperado')?.value || '').trim().toUpperCase();
         const ref  = document.getElementById('filtroRefeicao')?.value || '';
-        // Lê as datas dos campos; se por algum motivo estiverem vazios, usa hoje
-        const ini  = document.getElementById('dataInicio')?.value || hoje;
-        const fim  = document.getElementById('dataFim')?.value    || hoje;
-        // Garante que o badge está correto a cada atualização do listener
+
+        // Lê os campos — se estiverem vazios usa 'hoje' como fallback garantido
+        const ini = document.getElementById('dataInicio')?.value || hoje;
+        const fim = document.getElementById('dataFim')?.value    || hoje;
+
         const filtroCustom = (ini !== hoje) || (fim !== hoje) || !!coop || !!ref;
         _atualizarBadgePainel(filtroCustom);
-        renderizarTabela(_filtrar(pedidos, coop, ini, fim, ref));
+
+        // FILTRO PRIMÁRIO: sempre filtra por data, independente dos campos HTML
+        const pedidosFiltrados = pedidos.filter(p => {
+            const d = (p.dataISO || '').trim();
+            if (!d) return false;
+            if (coop && !(p.cooperado||'').toUpperCase().includes(coop)) return false;
+            if (ref  && (p.refeicao||'janta') !== ref) return false;
+            if (d < ini) return false;
+            if (d > fim) return false;
+            return true;
+        });
+
+        renderizarTabela(pedidosFiltrados);
     });
 }
 
