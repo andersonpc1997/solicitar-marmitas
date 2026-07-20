@@ -1,14 +1,16 @@
 /**
  * database.js — Oilema Sementes
- * Firebase: pedidos + pré-cadastro de veículos
+ * Firebase Realtime Database: pedidos + usuários
  */
 
 firebase.initializeApp(FIREBASE_CONFIG);
 const _db        = firebase.database();
 const _REF       = 'pedidosMarmita';
-const _VEIC_REF  = 'veiculos';
+const _USERS_REF = 'usuarios';
 
-/* ── PEDIDOS ─────────────────────────────────────────── */
+/* ================================================================
+   PEDIDOS
+   ================================================================ */
 async function dbGet() {
     try {
         const snap = await _db.ref(_REF).get();
@@ -41,24 +43,30 @@ function dbEscutar(callback) {
     return () => ref.off('value');
 }
 
-/* ── PRÉ-CADASTRO DE VEÍCULOS ────────────────────────── */
-async function dbGetVeiculos() {
+/* ================================================================
+   USUÁRIOS
+   ================================================================ */
+async function dbGetUsuarios() {
     try {
-        const snap = await _db.ref(_VEIC_REF).get();
-        if (!snap.exists()) return {};
-        return snap.val();
-    } catch (e) { console.error('[DB] dbGetVeiculos:', e); return {}; }
+        const snap = await _db.ref(_USERS_REF).get();
+        if (!snap.exists()) return [];
+        return Object.entries(snap.val()).map(([id, v]) => ({ id, ...v }));
+    } catch (e) { console.error('[DB] dbGetUsuarios:', e); return []; }
 }
 
-async function dbSalvarVeiculo(placa, dados) {
+async function dbCriarUsuario(dados) {
     try {
-        await _db.ref(`${_VEIC_REF}/${placa}`).set({ ...dados, atualizadoEm: new Date().toISOString() });
-        return true;
-    } catch (e) { console.error('[DB] dbSalvarVeiculo:', e); return false; }
+        const ref = await _db.ref(_USERS_REF).push(dados);
+        return ref.key;
+    } catch (e) { console.error('[DB] dbCriarUsuario:', e); return null; }
 }
 
-/* ── COMPATIBILIDADE (usuários) ──────────────────────── */
-async function dbGetUsuarios() { return []; }
-async function dbCriarUsuario() { return null; }
-async function dbAtualizarUsuario() { return false; }
-async function dbDeletarUsuario() { return false; }
+async function dbAtualizarUsuario(id, dados) {
+    try { await _db.ref(`${_USERS_REF}/${id}`).update(dados); return true; }
+    catch (e) { console.error('[DB] dbAtualizarUsuario:', e); return false; }
+}
+
+async function dbDeletarUsuario(id) {
+    try { await _db.ref(`${_USERS_REF}/${id}`).remove(); return true; }
+    catch (e) { console.error('[DB] dbDeletarUsuario:', e); return false; }
+}
