@@ -292,6 +292,9 @@ function iniciarPainel() {
         // Lê as datas dos campos; se por algum motivo estiverem vazios, usa hoje
         const ini  = document.getElementById('dataInicio')?.value || hoje;
         const fim  = document.getElementById('dataFim')?.value    || hoje;
+        // Garante que o badge está correto a cada atualização do listener
+        const filtroCustom = (ini !== hoje) || (fim !== hoje) || !!coop || !!ref;
+        _atualizarBadgePainel(filtroCustom);
         renderizarTabela(_filtrar(pedidos, coop, ini, fim, ref));
     });
 }
@@ -330,23 +333,25 @@ function renderizarTabela(pedidos) {
    STATS BAR
    ================================================================ */
 function _atualizarStats(pedidos) {
-    const hoje = new Date().toISOString().split('T')[0];
-    const hj   = pedidos.filter(p => p.dataISO === hoje);
-    const marHoje  = hj.reduce((a,p) => a + parseInt(p.quantidade||0), 0);
-    const almocos  = hj.filter(p => (p.refeicao||'janta') === 'almoco').reduce((a,p) => a + parseInt(p.quantidade||0), 0);
-    const jantas   = hj.filter(p => (p.refeicao||'janta') === 'janta').reduce((a,p) => a + parseInt(p.quantidade||0), 0);
+    // pedidos já vem filtrado (somente os exibidos na tabela)
+    const total   = pedidos.reduce((a,p) => a + parseInt(p.quantidade||0), 0);
+    const almocos = pedidos.filter(p => (p.refeicao||'janta') === 'almoco').reduce((a,p) => a + parseInt(p.quantidade||0), 0);
+    const jantas  = pedidos.filter(p => (p.refeicao||'janta') === 'janta' ).reduce((a,p) => a + parseInt(p.quantidade||0), 0);
 
+    // Período: mostra só a data dos registros exibidos
     let periodo = '—';
     if (pedidos.length) {
         const dts = pedidos.map(p => p.dataISO).filter(Boolean).sort();
-        periodo = dts[0] === dts[dts.length-1] ? _fmt(dts[0]) : _fmt(dts[0]) + ' – ' + _fmt(dts[dts.length-1]);
+        const primeira = dts[0];
+        const ultima   = dts[dts.length - 1];
+        periodo = primeira === ultima ? _fmt(primeira) : _fmt(primeira) + ' – ' + _fmt(ultima);
     }
 
-    _set('statTotal',    marHoje || pedidos.reduce((a,p) => a+parseInt(p.quantidade||0),0));
-    _set('statAlmoco',   almocos);
-    _set('statJanta',    jantas);
-    _set('statRegistros',pedidos.length);
-    _set('statPeriodo',  periodo);
+    _set('statTotal',     total);
+    _set('statAlmoco',    almocos);
+    _set('statJanta',     jantas);
+    _set('statRegistros', pedidos.length);
+    _set('statPeriodo',   periodo);
 }
 
 function _set(id, v) { const el = document.getElementById(id); if(el) el.textContent = v; }
