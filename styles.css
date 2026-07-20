@@ -1490,3 +1490,29 @@ td strong { color: var(--slate); font-weight: 700; }
     .stats-bar-5 .stat-card:first-child { grid-column: span 2; }
     .kpi-grid, .kpi-grid:last-of-type { grid-template-columns: 1fr 1fr; }
 }
+
+/* ============================================================
+   BADGE DE CONTEXTO DO PAINEL
+   ============================================================ */
+.badge-contexto {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    border-left: 4px solid transparent;
+}
+
+.badge-contexto-hoje {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-left-color: #2e7d32;
+}
+
+.badge-contexto-filtro {
+    background: #fff8e1;
+    color: #f57f17;
+    border-left-color: #f59e0b;
+}

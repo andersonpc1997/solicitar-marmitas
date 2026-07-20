@@ -276,12 +276,21 @@ function iniciarPainel() {
     document.getElementById('listaSolicitacoes').innerHTML =
         '<tr><td colspan="8" class="empty-state">Carregando...</td></tr>';
 
+    // Padrão: exibe somente o dia de hoje — preenche os campos de data
+    const hoje = new Date().toISOString().split('T')[0];
+    const elIni = document.getElementById('dataInicio');
+    const elFim = document.getElementById('dataFim');
+    if (elIni) elIni.value = hoje;
+    if (elFim) elFim.value = hoje;
+    _atualizarBadgePainel(false);
+
     return dbEscutar(pedidos => {
         const coop = document.getElementById('filtroCooperado')?.value.trim().toUpperCase();
         const ini  = document.getElementById('dataInicio')?.value;
         const fim  = document.getElementById('dataFim')?.value;
         const ref  = document.getElementById('filtroRefeicao')?.value;
-        renderizarTabela((coop || ini || fim || ref) ? _filtrar(pedidos, coop, ini, fim, ref) : pedidos);
+        // Sempre filtra — no mínimo as datas de hoje já estão preenchidas
+        renderizarTabela(_filtrar(pedidos, coop, ini, fim, ref));
     });
 }
 
@@ -362,13 +371,23 @@ async function aplicarFiltros() {
     const fim  = document.getElementById('dataFim').value;
     const ref  = document.getElementById('filtroRefeicao').value;
     if (!coop && !ini && !fim && !ref) { alert('Preencha ao menos um campo de filtro.'); return; }
+    // Verifica se está buscando fora do dia de hoje
+    const hoje = new Date().toISOString().split('T')[0];
+    const filtroCustom = (ini && ini !== hoje) || (fim && fim !== hoje) || !!coop || !!ref;
+    _atualizarBadgePainel(filtroCustom);
     renderizarTabela(_filtrar(await dbGet(), coop, ini, fim, ref));
 }
 
 async function limparFiltro() {
-    ['filtroCooperado','dataInicio','dataFim'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-    const ref = document.getElementById('filtroRefeicao'); if(ref) ref.value = '';
-    renderizarTabela(await dbGet());
+    // Ao limpar, volta para o padrão: somente hoje
+    const hoje = new Date().toISOString().split('T')[0];
+    const coop = document.getElementById('filtroCooperado'); if(coop) coop.value = '';
+    const ref  = document.getElementById('filtroRefeicao');  if(ref)  ref.value  = '';
+    const ini  = document.getElementById('dataInicio');      if(ini)  ini.value  = hoje;
+    const fim  = document.getElementById('dataFim');         if(fim)  fim.value  = hoje;
+    _atualizarBadgePainel(false);
+    const todos = await dbGet();
+    renderizarTabela(_filtrar(todos, '', hoje, hoje, ''));
 }
 
 async function limparBanco() {
