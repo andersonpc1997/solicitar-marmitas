@@ -276,8 +276,10 @@ function iniciarPainel() {
     document.getElementById('listaSolicitacoes').innerHTML =
         '<tr><td colspan="8" class="empty-state">Carregando...</td></tr>';
 
-    // Padrão: exibe somente o dia de hoje — preenche os campos de data
+    // Padrão: exibe somente registros de HOJE
     const hoje = new Date().toISOString().split('T')[0];
+
+    // Preenche os campos de data com hoje
     const elIni = document.getElementById('dataInicio');
     const elFim = document.getElementById('dataFim');
     if (elIni) elIni.value = hoje;
@@ -285,11 +287,11 @@ function iniciarPainel() {
     _atualizarBadgePainel(false);
 
     return dbEscutar(pedidos => {
-        const coop = document.getElementById('filtroCooperado')?.value.trim().toUpperCase();
-        const ini  = document.getElementById('dataInicio')?.value;
-        const fim  = document.getElementById('dataFim')?.value;
-        const ref  = document.getElementById('filtroRefeicao')?.value;
-        // Sempre filtra — no mínimo as datas de hoje já estão preenchidas
+        const coop = (document.getElementById('filtroCooperado')?.value || '').trim().toUpperCase();
+        const ref  = document.getElementById('filtroRefeicao')?.value || '';
+        // Lê as datas dos campos; se por algum motivo estiverem vazios, usa hoje
+        const ini  = document.getElementById('dataInicio')?.value || hoje;
+        const fim  = document.getElementById('dataFim')?.value    || hoje;
         renderizarTabela(_filtrar(pedidos, coop, ini, fim, ref));
     });
 }
@@ -357,10 +359,10 @@ function _filtrar(pedidos, coop, ini, fim, ref) {
     return pedidos.filter(p => {
         if (coop && !(p.cooperado||'').includes(coop)) return false;
         if (ref  && (p.refeicao||'janta') !== ref) return false;
-        const d = p.dataISO;
-        if (ini && fim && (d < ini || d > fim)) return false;
-        if (ini && !fim && d < ini) return false;
-        if (!ini && fim && d > fim) return false;
+        const d = (p.dataISO || '').trim();
+        if (!d) return false; // descarta registros sem data
+        if (ini && d < ini) return false;
+        if (fim && d > fim) return false;
         return true;
     });
 }
