@@ -272,21 +272,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* ================================================================
    PAINEL — listener + renderização
    ================================================================ */
+// Data ativa no painel — sempre começa com hoje, muda só ao filtrar/limpar
+let _painelDataIni = null;
+let _painelDataFim = null;
+
 function iniciarPainel() {
     document.getElementById('listaSolicitacoes').innerHTML =
         '<tr><td colspan="8" class="empty-state">Carregando...</td></tr>';
 
-    // Data de hoje em formato ISO — usada como padrão fixo
+    // Define hoje como filtro padrão
     const hoje = new Date().toISOString().split('T')[0];
+    _painelDataIni = hoje;
+    _painelDataFim = hoje;
 
-    // Preenche os campos de data (pode não funcionar se view ainda estiver oculta,
-    // por isso os campos são preenchidos E usamos 'hoje' como fallback no listener)
+    // Preenche os campos visuais após render
     setTimeout(() => {
         const elIni = document.getElementById('dataInicio');
         const elFim = document.getElementById('dataFim');
         if (elIni) elIni.value = hoje;
         if (elFim) elFim.value = hoje;
-    }, 50);
+    }, 100);
 
     _atualizarBadgePainel(false);
 
@@ -294,21 +299,17 @@ function iniciarPainel() {
         const coop = (document.getElementById('filtroCooperado')?.value || '').trim().toUpperCase();
         const ref  = document.getElementById('filtroRefeicao')?.value || '';
 
-        // Lê os campos — se estiverem vazios usa 'hoje' como fallback garantido
-        const ini = document.getElementById('dataInicio')?.value || hoje;
-        const fim = document.getElementById('dataFim')?.value    || hoje;
+        // USA AS VARIÁVEIS DE ESTADO — não os campos HTML
+        const ini = _painelDataIni;
+        const fim = _painelDataFim;
 
-        const filtroCustom = (ini !== hoje) || (fim !== hoje) || !!coop || !!ref;
-        _atualizarBadgePainel(filtroCustom);
-
-        // FILTRO PRIMÁRIO: sempre filtra por data, independente dos campos HTML
         const pedidosFiltrados = pedidos.filter(p => {
             const d = (p.dataISO || '').trim();
             if (!d) return false;
             if (coop && !(p.cooperado||'').toUpperCase().includes(coop)) return false;
             if (ref  && (p.refeicao||'janta') !== ref) return false;
-            if (d < ini) return false;
-            if (d > fim) return false;
+            if (ini && d < ini) return false;
+            if (fim && d > fim) return false;
             return true;
         });
 
@@ -395,20 +396,28 @@ async function aplicarFiltros() {
     const fim  = document.getElementById('dataFim').value;
     const ref  = document.getElementById('filtroRefeicao').value;
     if (!coop && !ini && !fim && !ref) { alert('Preencha ao menos um campo de filtro.'); return; }
-    // Verifica se está buscando fora do dia de hoje
+
+    // Atualiza variáveis de estado do painel
     const hoje = new Date().toISOString().split('T')[0];
-    const filtroCustom = (ini && ini !== hoje) || (fim && fim !== hoje) || !!coop || !!ref;
+    _painelDataIni = ini || hoje;
+    _painelDataFim = fim || hoje;
+
+    const filtroCustom = (_painelDataIni !== hoje) || (_painelDataFim !== hoje) || !!coop || !!ref;
     _atualizarBadgePainel(filtroCustom);
-    renderizarTabela(_filtrar(await dbGet(), coop, ini, fim, ref));
+    renderizarTabela(_filtrar(await dbGet(), coop, _painelDataIni, _painelDataFim, ref));
 }
 
 async function limparFiltro() {
-    // Ao limpar, volta para o padrão: somente hoje
+    // Volta para o padrão: somente hoje
     const hoje = new Date().toISOString().split('T')[0];
-    const coop = document.getElementById('filtroCooperado'); if(coop) coop.value = '';
-    const ref  = document.getElementById('filtroRefeicao');  if(ref)  ref.value  = '';
-    const ini  = document.getElementById('dataInicio');      if(ini)  ini.value  = hoje;
-    const fim  = document.getElementById('dataFim');         if(fim)  fim.value  = hoje;
+    _painelDataIni = hoje;
+    _painelDataFim = hoje;
+
+    const elCoop = document.getElementById('filtroCooperado'); if(elCoop) elCoop.value = '';
+    const elRef  = document.getElementById('filtroRefeicao');  if(elRef)  elRef.value  = '';
+    const elIni  = document.getElementById('dataInicio');      if(elIni)  elIni.value  = hoje;
+    const elFim  = document.getElementById('dataFim');         if(elFim)  elFim.value  = hoje;
+
     _atualizarBadgePainel(false);
     const todos = await dbGet();
     renderizarTabela(_filtrar(todos, '', hoje, hoje, ''));
