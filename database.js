@@ -37,38 +37,8 @@ function dbEscutar(callback) {
             pedidos = Array.isArray(d) ? d : Object.values(d);
         }
         callback(pedidos);
-    }, err => {
-        console.error('[DB] listener erro:', err.code, err.message);
-        _mostrarErroDB(err);
-        callback([]);
-    });
+    }, err => { console.error('[DB] listener:', err); callback([]); });
     return () => ref.off('value');
-}
-
-function _mostrarErroDB(err) {
-    // Mostra mensagem de erro visível na interface
-    const msgs = document.querySelectorAll('.empty-state');
-    const codigo = err?.code || 'ERRO';
-    let texto = '⚠️ Erro ao conectar com o banco de dados.';
-
-    if (codigo === 'PERMISSION_DENIED') {
-        texto = '🔒 Acesso negado ao Firebase. Verifique as regras de segurança do banco.';
-    } else if (codigo === 'NETWORK_ERROR' || !navigator.onLine) {
-        texto = '📡 Sem conexão com a internet. Verifique sua rede.';
-    }
-
-    msgs.forEach(el => { el.textContent = texto; });
-
-    // Mostra também um banner no topo da view ativa
-    let banner = document.getElementById('banner-erro-db');
-    if (!banner) {
-        banner = document.createElement('div');
-        banner.id = 'banner-erro-db';
-        banner.style.cssText = 'position:fixed;top:64px;left:0;right:0;z-index:999;background:#fce8e6;color:#c5221f;padding:12px 20px;font-weight:700;font-size:13px;text-align:center;border-bottom:2px solid #ef9a9a;';
-        document.body.appendChild(banner);
-    }
-    banner.textContent = texto + ' (código: ' + codigo + ')';
-    banner.style.display = 'block';
 }
 
 /* ── PRÉ-CADASTRO DE VEÍCULOS ────────────────────────── */
