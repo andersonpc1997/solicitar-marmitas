@@ -1214,3 +1214,305 @@ td strong { color: var(--slate); font-weight: 700; }
     .btn-modal-cancel,
     .btn-modal-save { width: 100%; text-align: center; }
 }
+
+/* ============================================================
+   AUTOCOMPLETE
+   ============================================================ */
+.autocomplete-wrap { position: relative; }
+
+.autocomplete-lista {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: var(--bg-card);
+    border: 1.5px solid var(--laranja);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    box-shadow: 0 8px 24px rgba(68,85,96,0.15);
+    z-index: 300;
+    list-style: none;
+    margin: 0; padding: 4px 0;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+.autocomplete-item:hover { background: var(--bg); }
+
+.ac-placa {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--slate);
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+.ac-nome {
+    font-size: 13px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   BADGES DE REFEIÇÃO
+   ============================================================ */
+.badge-refeicao {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+.badge-almoco   { background: #fff3cd; color: #92600a; border: 1.5px solid #fcd34d; }
+.badge-janta    { background: #e8eaf6; color: #3949ab; border: 1.5px solid #9fa8da; }
+.badge-encerrado{ background: var(--vermelho-bg); color: var(--vermelho); border: 1.5px solid #ef9a9a; }
+
+/* Badge inline na tabela */
+.badge-ref {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.badge-ref-almoco { background: #fff3cd; color: #92600a; }
+.badge-ref-janta  { background: #e8eaf6; color: #3949ab; }
+
+/* ============================================================
+   HORÁRIO INFO BOX
+   ============================================================ */
+.horario-info-box {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin: 16px 0;
+    border: 1px solid var(--border);
+}
+.horario-periodo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.periodo-item { white-space: nowrap; }
+.periodo-sep  { color: var(--border); }
+
+/* ============================================================
+   STATS BAR 5 COLUNAS
+   ============================================================ */
+.stats-bar-5 { grid-template-columns: repeat(5, 1fr); }
+.stat-card-almoco { border-left-color: #f59e0b; }
+.stat-card-janta  { border-left-color: #6366f1; }
+
+/* ============================================================
+   DASHBOARD — KPIs
+   ============================================================ */
+.dash-section-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 20px 0 10px;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 8px;
+}
+.kpi-grid:last-of-type { grid-template-columns: repeat(4, 1fr); }
+
+.kpi-card {
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow);
+}
+.kpi-laranja { background: linear-gradient(135deg,#f28130,#d66a18); color:#fff; }
+.kpi-amarelo { background: linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+.kpi-azul    { background: linear-gradient(135deg,#6366f1,#4338ca); color:#fff; }
+.kpi-slate   { background: var(--bg-card); border: 1.5px solid var(--border); color: var(--slate); }
+
+.kpi-valor {
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+}
+.kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    text-align: center;
+}
+.kpi-slate .kpi-label { color: var(--text-muted); }
+
+/* ============================================================
+   DASHBOARD — Cards e gráfico
+   ============================================================ */
+.dash-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+}
+.dash-card-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--slate);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.grafico-wrap {
+    width: 100%;
+    height: 220px;
+    position: relative;
+}
+.grafico-wrap canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.dash-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.dash-card-half { margin-bottom: 0; }
+
+/* Top cooperados */
+.top-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.top-rank {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.top-info { flex: 1; min-width: 0; }
+.top-nome {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--slate);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+.top-bar-wrap {
+    height: 6px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 2px;
+}
+.top-bar { height: 100%; border-radius: 3px; transition: width 0.4s; }
+.top-pct { font-size: 10px; color: var(--text-muted); }
+
+.top-qtd {
+    text-align: right;
+    flex-shrink: 0;
+}
+.top-qtd strong { display: block; font-size: 16px; font-weight: 800; color: var(--slate); }
+.top-qtd span   { font-size: 10px; color: var(--text-muted); }
+
+/* Tabela de dias */
+.linha-hoje td { background: #fff8f0 !important; }
+.badge-hoje {
+    background: var(--laranja);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+.text-center { text-align: center !important; }
+
+/* ============================================================
+   RESPONSIVO MOBILE — novos elementos
+   ============================================================ */
+@media (max-width: 767px) {
+    .stats-bar-5 { grid-template-columns: repeat(3,1fr); }
+    .stats-bar-5 .stat-card:nth-child(4),
+    .stats-bar-5 .stat-card:nth-child(5) { grid-column: span 1; }
+
+    .kpi-grid               { grid-template-columns: 1fr 1fr; }
+    .kpi-grid:last-of-type  { grid-template-columns: 1fr 1fr; }
+    .kpi-valor              { font-size: 28px; }
+
+    .dash-cols { grid-template-columns: 1fr; }
+
+    .horario-periodo { flex-direction: column; gap: 4px; }
+    .periodo-sep     { display: none; }
+
+    .filtro-row { flex-wrap: wrap; }
+    .filtro-field { flex: 0 0 calc(50% - 8px); min-width: 0; }
+    .filtro-field:first-child { flex: 0 0 100%; }
+}
+
+@media (max-width: 480px) {
+    .stats-bar-5 { grid-template-columns: 1fr 1fr; }
+    .stats-bar-5 .stat-card:first-child { grid-column: span 2; }
+    .kpi-grid, .kpi-grid:last-of-type { grid-template-columns: 1fr 1fr; }
+}
+
+/* ============================================================
+   BADGE DE CONTEXTO DO PAINEL
+   ============================================================ */
+.badge-contexto {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    border-left: 4px solid transparent;
+}
+
+.badge-contexto-hoje {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-left-color: #2e7d32;
+}
+
+.badge-contexto-filtro {
+    background: #fff8e1;
+    color: #f57f17;
+    border-left-color: #f59e0b;
+}
