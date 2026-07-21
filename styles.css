@@ -766,8 +766,8 @@ td strong { color: var(--slate); font-weight: 700; }
    ============================================================ */
 @media print {
     @page {
-        size: A4 portrait;
-        margin: 6mm 8mm 6mm 8mm;
+        size: A4 landscape;
+        margin: 5mm;
     }
 
     * { 
@@ -874,26 +874,35 @@ td strong { color: var(--slate); font-weight: 700; }
         width: 100% !important;
         min-width: 100% !important;
         border-collapse: collapse;
-        font-size: 7.2pt !important;
+        font-size: 7.5pt !important;
         margin-top: 0;
-        border: 1px solid #d0d7de !important;
+        border-bottom: 1px solid #d0d7de !important;
+        border-top: 2px solid #d0d7de !important;
+        border-left: none !important;
+        border-right: none !important;
     }
     thead { display: table-header-group; }
     tr { page-break-inside: avoid; }
     th {
         background-color: #f6f8fa !important;
         color: #24292f !important;
-        font-size: 7.2pt !important;
+        font-size: 7.5pt !important;
         font-weight: 700;
         text-transform: uppercase;
-        padding: 4px 5px !important;
-        border: 1px solid #d0d7de !important;
+        padding: 4px 2px !important;
+        border-bottom: 2px solid #d0d7de !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
     }
     td {
-        padding: 3px 5px !important;
-        border: 1px solid #e1e4e6 !important;
+        padding: 3px 2px !important;
+        border-bottom: 1px solid #e1e4e6 !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
         color: #2c3e50;
-        line-height: 1.15;
+        line-height: 1.1;
     }
     tbody tr:nth-child(even) td { background-color: #fafbfc !important; }
     tbody tr:nth-child(odd)  td { background-color: #ffffff !important; }
