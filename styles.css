@@ -766,11 +766,15 @@ td strong { color: var(--slate); font-weight: 700; }
    ============================================================ */
 @media print {
     @page {
-        size: A4 landscape;
-        margin: 12mm 14mm 18mm 14mm;
+        size: A4 portrait;
+        margin: 8mm 10mm 10mm 10mm;
     }
 
-    * { box-sizing: border-box !important; }
+    * { 
+        box-sizing: border-box !important; 
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 
     html, body {
         height: auto !important;
@@ -779,15 +783,14 @@ td strong { color: var(--slate); font-weight: 700; }
         background-color: #ffffff !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-family: 'Segoe UI', Arial, sans-serif;
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         color: #2c3e50;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
     }
 
     #view-index,
     #view-login,
-    #view-admin  { display: none !important; height: 0 !important; overflow: hidden !important; }
+    #view-admin,
+    #view-dashboard { display: none !important; height: 0 !important; overflow: hidden !important; }
 
     #view-painel {
         display: block !important;
@@ -804,11 +807,14 @@ td strong { color: var(--slate); font-weight: 700; }
     .topbar,
     .bottom-nav,
     .stats-bar,
-    .filtro-card { display: none !important; }
+    .filtro-card,
+    .badge-contexto { display: none !important; }
 
     .tabela-wrapper {
         border-radius: 0 !important;
         overflow: visible !important;
+        background: none !important;
+        padding: 0 !important;
     }
 
     .main-content,
@@ -822,42 +828,45 @@ td strong { color: var(--slate); font-weight: 700; }
         display: flex !important;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 4px solid #f28130;
-        padding-bottom: 10px;
-        margin-bottom: 14px;
+        border-bottom: 2px solid #f28130;
+        padding-bottom: 6px;
+        margin-bottom: 10px;
     }
     .pdf-header-left {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 10px;
     }
-    .pdf-header-logo { height: 52px; }
+    .pdf-header-logo { height: 38px; }
     .pdf-header-titles h1 {
         margin: 0;
-        font-size: 18pt;
+        font-size: 13pt;
         font-weight: 800;
         color: #445560;
+        line-height: 1.1;
     }
     .pdf-header-titles span {
-        font-size: 9pt;
+        font-size: 8pt;
         font-weight: 600;
         color: #f28130;
         text-transform: uppercase;
+        display: block;
+        margin-top: 1px;
     }
     .pdf-header-right { text-align: right; }
     .pdf-badge {
         background-color: #f28130;
         color: #fff;
-        font-size: 8pt;
+        font-size: 7.5pt;
         font-weight: 700;
-        padding: 3px 10px;
-        border-radius: 20px;
+        padding: 2px 8px;
+        border-radius: 12px;
         text-transform: uppercase;
     }
     .pdf-date {
         display: block;
-        margin-top: 5px;
-        font-size: 8pt;
+        margin-top: 2px;
+        font-size: 7.5pt;
         color: #7f8c8d;
     }
 
@@ -865,46 +874,74 @@ td strong { color: var(--slate); font-weight: 700; }
         width: 100% !important;
         min-width: 100% !important;
         border-collapse: collapse;
-        font-size: 8.5pt;
+        font-size: 7.5pt !important;
         margin-top: 0;
+        border: 1px solid #d0d7de !important;
     }
     thead { display: table-header-group; }
     tr { page-break-inside: avoid; }
     th {
-        background-color: #445560 !important;
-        color: #ffffff !important;
-        font-size: 7.5pt;
+        background-color: #f6f8fa !important;
+        color: #24292f !important;
+        font-size: 7.5pt !important;
         font-weight: 700;
         text-transform: uppercase;
-        padding: 9px 10px;
+        padding: 5px 6px !important;
+        border: 1px solid #d0d7de !important;
     }
     td {
-        padding: 8px 10px;
-        border-bottom: 1px solid #e0e6ed;
+        padding: 4px 6px !important;
+        border: 1px solid #e1e4e6 !important;
         color: #2c3e50;
     }
-    tbody tr:nth-child(even) td { background-color: #f4f7f9 !important; }
-    tbody tr:nth-child(odd)  td { background-color: #ffffff  !important; }
+    tbody tr:nth-child(even) td { background-color: #fafbfc !important; }
+    tbody tr:nth-child(odd)  td { background-color: #ffffff !important; }
+
+    /* Forçar alinhamento e tamanhos de coluna no print */
+    th:nth-child(1), td:nth-child(1) { width: 14%; text-align: left; }
+    th:nth-child(2), td:nth-child(2) { width: 10%; text-align: center; }
+    th:nth-child(3), td:nth-child(3) { width: 20%; text-align: left; }
+    th:nth-child(4), td:nth-child(4) { width: 10%; text-align: center; }
+    th:nth-child(5), td:nth-child(5) { width: 23%; text-align: left; }
+    th:nth-child(6), td:nth-child(6) { width: 18%; text-align: left; }
+    th:nth-child(7), td:nth-child(7) { width: 5%; text-align: center; font-weight: bold; }
+
+    .badge-ref {
+        display: inline !important;
+        padding: 0 !important;
+        background: none !important;
+        color: inherit !important;
+        font-weight: 600 !important;
+    }
+    
+    .badge-qty {
+        display: inline !important;
+        background: none !important;
+        color: inherit !important;
+        font-weight: 700 !important;
+        padding: 0 !important;
+        width: auto !important;
+        height: auto !important;
+    }
 
     .pdf-footer {
         display: flex !important;
         justify-content: space-between;
         align-items: center;
-        margin-top: 14px;
-        padding-top: 8px;
-        border-top: 2px solid #445560;
+        margin-top: 10px;
+        padding-top: 6px;
+        border-top: 1px solid #d0d7de;
         font-size: 7.5pt;
         color: #7f8c8d;
     }
     .pdf-footer-total {
-        background-color: #f28130 !important;
+        background-color: #445560 !important;
         color: #fff !important;
-        padding: 4px 12px;
-        border-radius: 20px;
+        padding: 3px 10px;
+        border-radius: 12px;
         font-weight: 700;
-        font-size: 8pt;
+        font-size: 7.5pt;
     }
-    .badge-qty { display: none !important; }
 }
 
 /* ============================================================
