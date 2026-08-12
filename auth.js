@@ -80,12 +80,28 @@ async function excluirUsuarioDb(uid) {
 /* ── Garante que o Admin existe na 1ª execução ──────────────── */
 async function _garantirAdmin() {
     try {
-        await _AUTH.signInWithEmailAndPassword(_ADMIN_EMAIL, _ADMIN_SENHA);
-        // Admin já existe — faz logout imediatamente (não queremos estar logado)
+        const cred = await _AUTH.signInWithEmailAndPassword(_ADMIN_EMAIL, _ADMIN_SENHA);
+        // Admin já existe no Auth — confere (e conserta, se preciso) o perfil no banco
+        try {
+            const snap = await _db.ref('usuarios/' + cred.user.uid).get();
+            if (!snap.exists()) {
+                await _db.ref('usuarios/' + cred.user.uid).set({
+                    usuario:      _ADMIN_USER,
+                    nomeExibicao: 'Administrador',
+                    papel:        'admin',
+                    criadoEm:     new Date().toISOString(),
+                });
+                console.log('[Auth] Perfil do Admin estava faltando no banco — recriado automaticamente.');
+            }
+        } catch (dbErr) {
+            console.error('[Auth] Não foi possível ler/gravar o perfil do Admin no banco:', dbErr.code, dbErr.message);
+            console.warn('[Auth] Verifique as Regras (Rules) do Firebase Realtime Database — provavelmente estão bloqueando leitura/escrita.');
+        }
+        // Faz logout imediatamente (não queremos estar logado antes do usuário clicar em Entrar)
         await _AUTH.signOut();
     } catch (e) {
         if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-            // Cria o Admin
+            // Cria o Admin pela primeira vez
             try {
                 const cred = await _AUTH.createUserWithEmailAndPassword(_ADMIN_EMAIL, _ADMIN_SENHA);
                 const uid  = cred.user.uid;
@@ -98,26 +114,49 @@ async function _garantirAdmin() {
                 await _AUTH.signOut();
                 console.log('[Auth] Usuário Admin criado com sucesso.');
             } catch (err) {
-                console.warn('[Auth] Não foi possível criar o Admin:', err.message);
+                console.error('[Auth] Não foi possível criar o Admin:', err.code, err.message);
+                console.warn('[Auth] Se o erro for de permissão (PERMISSION_DENIED), verifique as Regras do Firebase Realtime Database.');
             }
+        } else {
+            console.error('[Auth] Erro inesperado ao verificar o Admin:', e.code, e.message);
         }
-        // Outros erros (ex: sem conexão) são ignorados silenciosamente
     }
 }
 
 /* ── Listener principal de autenticação ─────────────────────── */
 _AUTH.onAuthStateChanged(async (firebaseUser) => {
     if (firebaseUser) {
-        // Busca perfil no banco de dados
-        const snap = await _db.ref('usuarios/' + firebaseUser.uid).get();
-        if (snap.exists()) {
-            _usuarioLogado = { uid: firebaseUser.uid, ...snap.val() };
-        } else {
-            // Perfil não encontrado — desloga
-            await _AUTH.signOut();
-            return;
+        try {
+            // Busca perfil no banco de dados
+            const snap = await _db.ref('usuarios/' + firebaseUser.uid).get();
+            if (snap.exists()) {
+                _usuarioLogado = { uid: firebaseUser.uid, ...snap.val() };
+            } else if (firebaseUser.email === _ADMIN_EMAIL) {
+                // Autocura: é o Admin mas o perfil sumiu do banco — recria na hora
+                const perfilAdmin = {
+                    usuario:      _ADMIN_USER,
+                    nomeExibicao: 'Administrador',
+                    papel:        'admin',
+                    criadoEm:     new Date().toISOString(),
+                };
+                await _db.ref('usuarios/' + firebaseUser.uid).set(perfilAdmin);
+                _usuarioLogado = { uid: firebaseUser.uid, ...perfilAdmin };
+            } else {
+                // Perfil não encontrado — avisa e desloga
+                alert('Login autenticado, mas o perfil deste usuário não foi encontrado no banco de dados. Contate o administrador.');
+                await _AUTH.signOut();
+                return;
+            }
+            _aoLogar(_usuarioLogado);
+        } catch (err) {
+            // Erro real (ex: permissão negada nas Regras do Realtime Database) —
+            // agora aparece pro usuário em vez de falhar em silêncio.
+            console.error('[Auth] Erro ao carregar perfil do usuário:', err.code, err.message);
+            alert('Não foi possível acessar o banco de dados para concluir o login.\n\n' +
+                  'Erro: ' + (err.message || err) + '\n\n' +
+                  'Se você é o administrador, verifique as Regras (Rules) do Firebase Realtime Database.');
+            await _AUTH.signOut().catch(() => {});
         }
-        _aoLogar(_usuarioLogado);
     } else {
         _usuarioLogado = null;
         _aoDeslogar();
