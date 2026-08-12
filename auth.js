@@ -1,6 +1,7 @@
 /**
  * auth.js — Oilema Sementes
- * Autenticação por nome de usuário (convertido para e-mail fictício internamente).
+ * Autenticação por nome de usuário (convertido para e-mail fictício internamente)
+ * OU por e-mail real, já cadastrado diretamente no Firebase Authentication.
  * O Admin (usuario: "admin", senha: "123") é criado automaticamente na 1ª execução.
  */
 
@@ -13,9 +14,15 @@ const _ADMIN_EMAIL  = _ADMIN_USER + _DOMINIO;
 /* Estado global do usuário logado */
 let _usuarioLogado = null; // { uid, usuario, nomeExibicao, papel }
 
-/* ── Converte nome de usuário para e-mail fictício ──────────── */
-function _toEmail(usuario) {
-    return usuario.toLowerCase().trim() + _DOMINIO;
+/* ── Converte o que foi digitado no login em e-mail ───────────
+   - Se já for um e-mail (contém "@"), usa exatamente como digitado
+     (ex: alguém cadastrado direto no Firebase com e-mail real).
+   - Caso contrário, trata como nome de usuário e converte para o
+     e-mail fictício interno (usuario@oilema.local).                 */
+function _toEmail(usuarioOuEmail) {
+    const valor = usuarioOuEmail.toLowerCase().trim();
+    if (valor.includes('@')) return valor;
+    return valor + _DOMINIO;
 }
 
 /* ── Retorna o usuário atualmente logado ────────────────────── */
@@ -141,6 +148,20 @@ _AUTH.onAuthStateChanged(async (firebaseUser) => {
                 };
                 await _db.ref('usuarios/' + firebaseUser.uid).set(perfilAdmin);
                 _usuarioLogado = { uid: firebaseUser.uid, ...perfilAdmin };
+            } else if (firebaseUser.email) {
+                // E-mail válido no Firebase Authentication, mas sem perfil em "usuarios"
+                // (ex: conta criada direto pelo console do Firebase, fora do Admin do site).
+                // Cria um perfil básico automaticamente para liberar o acesso.
+                const nomePadrao = firebaseUser.email.split('@')[0];
+                const perfilNovo = {
+                    usuario:      nomePadrao,
+                    nomeExibicao: nomePadrao.charAt(0).toUpperCase() + nomePadrao.slice(1),
+                    papel:        'usuario',
+                    criadoEm:     new Date().toISOString(),
+                };
+                await _db.ref('usuarios/' + firebaseUser.uid).set(perfilNovo);
+                _usuarioLogado = { uid: firebaseUser.uid, ...perfilNovo };
+                console.log('[Auth] Perfil criado automaticamente para e-mail cadastrado no Firebase:', firebaseUser.email);
             } else {
                 // Perfil não encontrado — avisa e desloga
                 alert('Login autenticado, mas o perfil deste usuário não foi encontrado no banco de dados. Contate o administrador.');
