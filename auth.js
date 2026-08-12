@@ -1,216 +1,78 @@
 /**
  * auth.js — Oilema Sementes
- * Autenticação por nome de usuário (convertido para e-mail fictício internamente)
- * OU por e-mail real, já cadastrado diretamente no Firebase Authentication.
- * O Admin (usuario: "admin", senha: "123") é criado automaticamente na 1ª execução.
+ * Autenticação com sessionStorage + SHA-256 (Web Crypto API)
  */
 
-const _AUTH         = firebase.auth();
-const _DOMINIO      = '@oilema.local';
-const _ADMIN_USER   = 'admin';
-const _ADMIN_SENHA  = '123';
-const _ADMIN_EMAIL  = _ADMIN_USER + _DOMINIO;
+const _SESSION_KEY = 'oilema_user';
+const _SALT        = 'oilema_sementes_2025';
 
-/* Estado global do usuário logado */
-let _usuarioLogado = null; // { uid, usuario, nomeExibicao, papel }
-
-/* ── Converte o que foi digitado no login em e-mail ───────────
-   - Se já for um e-mail (contém "@"), usa exatamente como digitado
-     (ex: alguém cadastrado direto no Firebase com e-mail real).
-   - Caso contrário, trata como nome de usuário e converte para o
-     e-mail fictício interno (usuario@oilema.local).                 */
-function _toEmail(usuarioOuEmail) {
-    const valor = usuarioOuEmail.toLowerCase().trim();
-    if (valor.includes('@')) return valor;
-    return valor + _DOMINIO;
+/* ── Hash de senha ─────────────────────────────────────────── */
+async function hashSenha(senha) {
+    const encoder = new TextEncoder();
+    const data    = encoder.encode(senha + _SALT);
+    const buffer  = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buffer))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/* ── Retorna o usuário atualmente logado ────────────────────── */
-function getUsuarioLogado() {
-    return _usuarioLogado;
-}
-
-/* ── Login ──────────────────────────────────────────────────── */
-async function fazerLogin(usuario, senha) {
-    const email = _toEmail(usuario);
-    try {
-        await _AUTH.signInWithEmailAndPassword(email, senha);
-        // onAuthStateChanged cuida do resto
-    } catch (e) {
-        const mensagens = {
-            'auth/user-not-found':   'Usuário não encontrado.',
-            'auth/wrong-password':   'Senha incorreta.',
-            'auth/invalid-email':    'Usuário inválido.',
-            'auth/too-many-requests':'Muitas tentativas. Tente novamente em instantes.',
-        };
-        throw new Error(mensagens[e.code] || 'Erro ao fazer login: ' + e.message);
-    }
-}
-
-/* ── Logout ─────────────────────────────────────────────────── */
-async function fazerLogout() {
-    await _AUTH.signOut();
-}
-
-/* ── Cria usuário pelo Admin ────────────────────────────────── */
-async function criarNovoUsuario(usuario, senha, nomeExibicao) {
-    // Usa segunda instância do Firebase para não deslogar o Admin
-    const appSecundario = firebase.initializeApp(FIREBASE_CONFIG, 'criacao_temp_' + Date.now());
-    try {
-        const authSecundario = appSecundario.auth();
-        const cred = await authSecundario.createUserWithEmailAndPassword(_toEmail(usuario), senha);
-        const uid  = cred.user.uid;
-        await authSecundario.signOut();
-
-        // Salva perfil no banco de dados
-        await _db.ref('usuarios/' + uid).set({
-            usuario:       usuario.toLowerCase().trim(),
-            nomeExibicao:  nomeExibicao.trim(),
-            papel:         'usuario',
-            criadoEm:      new Date().toISOString(),
+/* ── Inicialização: cria admin padrão se não houver usuários ── */
+async function inicializarSistema() {
+    const usuarios = await dbGetUsuarios();
+    if (usuarios.length === 0) {
+        const senhaHash = await hashSenha('admin123');
+        await dbCriarUsuario({
+            nome:      'Administrador',
+            login:     'admin',
+            senhaHash,
+            role:      'admin',
+            ativo:     true,
+            criadoEm:  new Date().toISOString()
         });
-
-        return uid;
-    } finally {
-        await appSecundario.delete();
+        console.info('[Auth] Admin padrão criado: admin / admin123');
     }
 }
 
-/* ── Exclui usuário ─────────────────────────────────────────── */
-async function excluirUsuarioDb(uid) {
-    await _db.ref('usuarios/' + uid).remove();
-    // Nota: a conta no Auth só pode ser excluída via Admin SDK (servidor).
-    // No client-side, removemos do banco de dados. A conta fica inativa
-    // pois não terá mais acesso ao perfil.
+/* ── Login ─────────────────────────────────────────────────── */
+async function fazerLogin(login, senha) {
+    const usuarios = await dbGetUsuarios();
+    const usuario  = usuarios.find(
+        u => u.login.toLowerCase() === login.toLowerCase().trim() && u.ativo
+    );
+    if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado ou inativo.' };
+
+    const hash = await hashSenha(senha);
+    if (hash !== usuario.senhaHash) return { sucesso: false, erro: 'Senha incorreta.' };
+
+    const sessao = { id: usuario.id, nome: usuario.nome, login: usuario.login, role: usuario.role };
+    sessionStorage.setItem(_SESSION_KEY, JSON.stringify(sessao));
+    return { sucesso: true, usuario: sessao };
 }
 
-/* ── Garante que o Admin existe na 1ª execução ──────────────── */
-async function _garantirAdmin() {
-    try {
-        const cred = await _AUTH.signInWithEmailAndPassword(_ADMIN_EMAIL, _ADMIN_SENHA);
-        // Admin já existe no Auth — confere (e conserta, se preciso) o perfil no banco
-        try {
-            const snap = await _db.ref('usuarios/' + cred.user.uid).get();
-            if (!snap.exists()) {
-                await _db.ref('usuarios/' + cred.user.uid).set({
-                    usuario:      _ADMIN_USER,
-                    nomeExibicao: 'Administrador',
-                    papel:        'admin',
-                    criadoEm:     new Date().toISOString(),
-                });
-                console.log('[Auth] Perfil do Admin estava faltando no banco — recriado automaticamente.');
-            }
-        } catch (dbErr) {
-            console.error('[Auth] Não foi possível ler/gravar o perfil do Admin no banco:', dbErr.code, dbErr.message);
-            console.warn('[Auth] Verifique as Regras (Rules) do Firebase Realtime Database — provavelmente estão bloqueando leitura/escrita.');
-        }
-        // Faz logout imediatamente (não queremos estar logado antes do usuário clicar em Entrar)
-        await _AUTH.signOut();
-    } catch (e) {
-        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-            // Cria o Admin pela primeira vez
-            try {
-                const cred = await _AUTH.createUserWithEmailAndPassword(_ADMIN_EMAIL, _ADMIN_SENHA);
-                const uid  = cred.user.uid;
-                await _db.ref('usuarios/' + uid).set({
-                    usuario:      _ADMIN_USER,
-                    nomeExibicao: 'Administrador',
-                    papel:        'admin',
-                    criadoEm:     new Date().toISOString(),
-                });
-                await _AUTH.signOut();
-                console.log('[Auth] Usuário Admin criado com sucesso.');
-            } catch (err) {
-                console.error('[Auth] Não foi possível criar o Admin:', err.code, err.message);
-                console.warn('[Auth] Se o erro for de permissão (PERMISSION_DENIED), verifique as Regras do Firebase Realtime Database.');
-            }
-        } else {
-            console.error('[Auth] Erro inesperado ao verificar o Admin:', e.code, e.message);
-        }
+/* ── Logout ────────────────────────────────────────────────── */
+function fazerLogout() {
+    sessionStorage.removeItem(_SESSION_KEY);
+    mostrarView('login');
+}
+
+/* ── Getters ───────────────────────────────────────────────── */
+function getUsuarioLogado() {
+    try { return JSON.parse(sessionStorage.getItem(_SESSION_KEY)); }
+    catch { return null; }
+}
+
+function isAdmin() {
+    const u = getUsuarioLogado();
+    return u && u.role === 'admin';
+}
+
+/* ── Guarda de rota ────────────────────────────────────────── */
+function verificarAuth(apenasAdmin = false) {
+    const u = getUsuarioLogado();
+    if (!u) { mostrarView('login'); return false; }
+    if (apenasAdmin && u.role !== 'admin') {
+        alert('Acesso restrito a administradores.');
+        mostrarView('index');
+        return false;
     }
+    return true;
 }
-
-/* ── Listener principal de autenticação ─────────────────────── */
-_AUTH.onAuthStateChanged(async (firebaseUser) => {
-    if (firebaseUser) {
-        try {
-            // Busca perfil no banco de dados
-            const snap = await _db.ref('usuarios/' + firebaseUser.uid).get();
-            if (snap.exists()) {
-                _usuarioLogado = { uid: firebaseUser.uid, ...snap.val() };
-            } else if (firebaseUser.email === _ADMIN_EMAIL) {
-                // Autocura: é o Admin mas o perfil sumiu do banco — recria na hora
-                const perfilAdmin = {
-                    usuario:      _ADMIN_USER,
-                    nomeExibicao: 'Administrador',
-                    papel:        'admin',
-                    criadoEm:     new Date().toISOString(),
-                };
-                await _db.ref('usuarios/' + firebaseUser.uid).set(perfilAdmin);
-                _usuarioLogado = { uid: firebaseUser.uid, ...perfilAdmin };
-            } else if (firebaseUser.email) {
-                // E-mail válido no Firebase Authentication, mas sem perfil em "usuarios"
-                // (ex: conta criada direto pelo console do Firebase, fora do Admin do site).
-                // Cria um perfil básico automaticamente para liberar o acesso.
-                const nomePadrao = firebaseUser.email.split('@')[0];
-                const perfilNovo = {
-                    usuario:      nomePadrao,
-                    nomeExibicao: nomePadrao.charAt(0).toUpperCase() + nomePadrao.slice(1),
-                    papel:        'usuario',
-                    criadoEm:     new Date().toISOString(),
-                };
-                await _db.ref('usuarios/' + firebaseUser.uid).set(perfilNovo);
-                _usuarioLogado = { uid: firebaseUser.uid, ...perfilNovo };
-                console.log('[Auth] Perfil criado automaticamente para e-mail cadastrado no Firebase:', firebaseUser.email);
-            } else {
-                // Perfil não encontrado — avisa e desloga
-                alert('Login autenticado, mas o perfil deste usuário não foi encontrado no banco de dados. Contate o administrador.');
-                await _AUTH.signOut();
-                return;
-            }
-            _aoLogar(_usuarioLogado);
-        } catch (err) {
-            // Erro real (ex: permissão negada nas Regras do Realtime Database) —
-            // agora aparece pro usuário em vez de falhar em silêncio.
-            console.error('[Auth] Erro ao carregar perfil do usuário:', err.code, err.message);
-            alert('Não foi possível acessar o banco de dados para concluir o login.\n\n' +
-                  'Erro: ' + (err.message || err) + '\n\n' +
-                  'Se você é o administrador, verifique as Regras (Rules) do Firebase Realtime Database.');
-            await _AUTH.signOut().catch(() => {});
-        }
-    } else {
-        _usuarioLogado = null;
-        _aoDeslogar();
-    }
-});
-
-/* ── Callbacks de navegação (implementadas em ui.js) ─────────── */
-function _aoLogar(usuario) {
-    // Exibe nome do usuário na topbar
-    document.querySelectorAll('.user-chip-nome').forEach(el => {
-        el.textContent = usuario.nomeExibicao;
-    });
-
-    // Mostra/oculta botões de Admin
-    const isAdmin = usuario.papel === 'admin';
-    document.querySelectorAll('.btn-nav-admin').forEach(el => {
-        el.style.display = isAdmin ? '' : 'none';
-    });
-
-    // Mostra a view inicial (index)
-    if (typeof mostrarView === 'function') mostrarView('index');
-}
-
-function _aoDeslogar() {
-    // Volta para a tela de login
-    if (typeof mostrarViewLogin === 'function') mostrarViewLogin();
-}
-
-/* ── Inicialização: garante Admin e mostra tela de login ─────── */
-document.addEventListener('DOMContentLoaded', async () => {
-    // Tela de login visível por padrão (as outras ficam ocultas)
-    if (typeof mostrarViewLogin === 'function') mostrarViewLogin();
-
-    // Garante que o Admin existe (executa em background)
-    _garantirAdmin().catch(() => {});
-});
