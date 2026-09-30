@@ -1,10 +1,10 @@
 /**
  * ui.js — Navegação entre views
- * Views: index | painel | dashboard | admin
+ * Views: index | painel | dashboard | admin | restaurante
  */
 
 let _cancelarListener = null;
-const _VIEWS = ['index','painel','dashboard','admin'];
+const _VIEWS = ['index','painel','dashboard','admin','restaurante'];
 
 function mostrarView(nome) {
     if (_cancelarListener) { _cancelarListener(); _cancelarListener = null; }
@@ -13,9 +13,10 @@ function mostrarView(nome) {
         if (el) el.style.display = (v===nome) ? '' : 'none';
     });
     _atualizarBottomNav(nome);
-    if (nome === 'painel')    _cancelarListener = iniciarPainel();
-    if (nome === 'dashboard') _cancelarListener = iniciarDashboard();
-    if (nome === 'admin')     carregarPaginaAdmin();
+    if (nome === 'painel')      _cancelarListener = iniciarPainel();
+    if (nome === 'dashboard')   _cancelarListener = iniciarDashboard();
+    if (nome === 'admin')       carregarPaginaAdmin();
+    if (nome === 'restaurante') _cancelarListener = iniciarRestaurante();
     window.scrollTo({ top:0, behavior:'smooth' });
 }
 
@@ -36,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (params.get('admin') === '1') {
         document.querySelectorAll('.btn-nav-admin').forEach(el => el.style.display = '');
         mostrarView('admin');
+    } else if (params.get('restaurante') === '1') {
+        mostrarView('restaurante');
     } else {
         mostrarView('index');
     }

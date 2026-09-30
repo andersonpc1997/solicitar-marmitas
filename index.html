@@ -22,6 +22,7 @@
             <button class="btn-nav btn-nav-admin" style="display:none;" onclick="mostrarView('admin')">⚙️ Admin</button>
             <button class="btn-nav btn-nav-ghost"   onclick="mostrarView('dashboard')">📈 Dashboard</button>
             <button class="btn-nav btn-nav-secondary" onclick="mostrarView('painel')">📊 Painel</button>
+            <button class="btn-nav btn-nav-restaurante" onclick="mostrarView('restaurante')">🍽️ Restaurante</button>
         </nav>
     </header>
 
@@ -50,6 +51,13 @@
                         <label for="nomeMotorista">Nome do Motorista</label>
                         <input type="text" id="nomeMotorista" class="caps-lock"
                             placeholder="EX: JOÃO DA SILVA"
+                            oninput="this.value=this.value.toUpperCase()" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="nomeResponsavel">Responsável pela Solicitação</label>
+                        <input type="text" id="nomeResponsavel" class="caps-lock"
+                            placeholder="EX: MARIA SOUZA"
                             oninput="this.value=this.value.toUpperCase()" required>
                     </div>
 
@@ -101,6 +109,9 @@
         <button class="bottom-nav-btn active" onclick="mostrarView('index')">
             <span class="bnav-icon">🍱</span><span class="bnav-label">Pedido</span>
         </button>
+        <button class="bottom-nav-btn" onclick="mostrarView('restaurante')">
+            <span class="bnav-icon">🍽️</span><span class="bnav-label">Restaurante</span>
+        </button>
         <button class="bottom-nav-btn" onclick="mostrarView('painel')">
             <span class="bnav-icon">📊</span><span class="bnav-label">Painel</span>
         </button>
@@ -141,6 +152,7 @@
         </div>
         <nav class="topbar-nav">
             <button class="btn-nav btn-nav-admin" style="display:none;" onclick="mostrarView('admin')">⚙️ Admin</button>
+            <button class="btn-nav btn-nav-restaurante" onclick="mostrarView('restaurante')">🍽️ Restaurante</button>
             <button class="btn-nav btn-nav-ghost" onclick="mostrarView('index')">⬅️ Voltar</button>
         </nav>
     </header>
@@ -208,7 +220,7 @@
             </div>
         </div>
 
-        <!-- Tabela — 8 colunas -->
+        <!-- Tabela — 9 colunas -->
         <div class="tabela-wrapper">
             <table>
                 <thead>
@@ -217,6 +229,7 @@
                         <th>Refeição</th>
                         <th>Motorista</th>
                         <th>Placa</th>
+                        <th>Responsável</th>
                         <th>Cooperado</th>
                         <th>Fazenda</th>
                         <th>Qtd</th>
@@ -224,7 +237,7 @@
                     </tr>
                 </thead>
                 <tbody id="listaSolicitacoes">
-                    <tr><td colspan="8" class="empty-state">Carregando...</td></tr>
+                    <tr><td colspan="9" class="empty-state">Carregando...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -238,6 +251,9 @@
     <nav class="bottom-nav">
         <button class="bottom-nav-btn" onclick="mostrarView('index')">
             <span class="bnav-icon">🍱</span><span class="bnav-label">Pedido</span>
+        </button>
+        <button class="bottom-nav-btn" onclick="mostrarView('restaurante')">
+            <span class="bnav-icon">🍽️</span><span class="bnav-label">Restaurante</span>
         </button>
         <button class="bottom-nav-btn active" onclick="mostrarView('painel')">
             <span class="bnav-icon">📊</span><span class="bnav-label">Painel</span>
@@ -263,6 +279,7 @@
         </div>
         <nav class="topbar-nav">
             <button class="btn-nav btn-nav-admin" style="display:none;" onclick="mostrarView('admin')">⚙️ Admin</button>
+            <button class="btn-nav btn-nav-restaurante" onclick="mostrarView('restaurante')">🍽️ Restaurante</button>
             <button class="btn-nav btn-nav-ghost" onclick="mostrarView('index')">⬅️ Voltar</button>
         </nav>
     </header>
@@ -355,6 +372,9 @@
         <button class="bottom-nav-btn" onclick="mostrarView('index')">
             <span class="bnav-icon">🍱</span><span class="bnav-label">Pedido</span>
         </button>
+        <button class="bottom-nav-btn" onclick="mostrarView('restaurante')">
+            <span class="bnav-icon">🍽️</span><span class="bnav-label">Restaurante</span>
+        </button>
         <button class="bottom-nav-btn" onclick="mostrarView('painel')">
             <span class="bnav-icon">📊</span><span class="bnav-label">Painel</span>
         </button>
@@ -402,6 +422,10 @@
                 <div class="field-group">
                     <label>Placa</label>
                     <input type="text" id="editPlaca" class="caps-lock" oninput="this.value=this.value.toUpperCase()">
+                </div>
+                <div class="field-group">
+                    <label>Responsável</label>
+                    <input type="text" id="editResponsavel" class="caps-lock" oninput="this.value=this.value.toUpperCase()">
                 </div>
                 <div class="field-group">
                     <label>Cooperado</label>
@@ -464,6 +488,98 @@
 
 
 <!-- ══════════════════════════════════════════════════
+     VIEW: RESTAURANTE (Painel da Cozinha)
+     ══════════════════════════════════════════════════ -->
+<div id="view-restaurante" class="view" style="display:none;">
+
+    <header class="topbar topbar-restaurante">
+        <div class="topbar-brand">
+            <img class="logo-img topbar-logo" alt="Oilema Sementes">
+            <span class="topbar-title">🍽️ Restaurante — Pedidos de Hoje</span>
+        </div>
+        <nav class="topbar-nav">
+            <button id="btn-ativar-alertas" class="btn-nav btn-alertas" onclick="ativarAlertas()">
+                🔔 Ativar Alertas Sonoros
+            </button>
+            <button class="btn-nav btn-nav-ghost" onclick="mostrarView('index')">⬅️ Voltar</button>
+        </nav>
+    </header>
+
+    <main class="main-content main-content-wide">
+
+        <div class="rest-top-section">
+            <!-- Contadores grandes -->
+            <div class="rest-stats">
+                <div class="rest-stat-card rest-stat-total">
+                    <span class="rest-stat-num" id="rest-total-marmitas">—</span>
+                    <span class="rest-stat-label">🍱 Total de Marmitas</span>
+                </div>
+                <div class="rest-stat-card rest-stat-almoco">
+                    <span class="rest-stat-num" id="rest-total-almoco">—</span>
+                    <span class="rest-stat-label">☀️ Almoço</span>
+                </div>
+                <div class="rest-stat-card rest-stat-janta">
+                    <span class="rest-stat-num" id="rest-total-janta">—</span>
+                    <span class="rest-stat-label">🌙 Janta</span>
+                </div>
+                <div class="rest-stat-card rest-stat-registros">
+                    <span class="rest-stat-num" id="rest-total-registros">—</span>
+                    <span class="rest-stat-label">📋 Solicitações</span>
+                </div>
+            </div>
+
+            <!-- Resumo por responsável -->
+            <div class="rest-responsavel-box">
+                <div class="rest-responsavel-title">👤 Por Responsável</div>
+                <div id="rest-resumo-responsaveis" class="rest-responsavel-list">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards dos pedidos -->
+        <div class="rest-titulo-secao">📋 Pedidos em Aberto — Atualização em Tempo Real</div>
+        <div id="rest-cards" class="rest-cards-grid">
+            <p class="rest-loading">Carregando...</p>
+        </div>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="bottom-nav-btn" onclick="mostrarView('index')">
+            <span class="bnav-icon">🍱</span><span class="bnav-label">Pedido</span>
+        </button>
+        <button class="bottom-nav-btn active" onclick="mostrarView('restaurante')">
+            <span class="bnav-icon">🍽️</span><span class="bnav-label">Restaurante</span>
+        </button>
+        <button class="bottom-nav-btn" onclick="mostrarView('painel')">
+            <span class="bnav-icon">📊</span><span class="bnav-label">Painel</span>
+        </button>
+        <button class="bottom-nav-btn" onclick="mostrarView('dashboard')">
+            <span class="bnav-icon">📈</span><span class="bnav-label">Dashboard</span>
+        </button>
+        <button class="bottom-nav-btn btn-nav-admin" style="display:none;" onclick="mostrarView('admin')">
+            <span class="bnav-icon">⚙️</span><span class="bnav-label">Admin</span>
+        </button>
+    </nav>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     BANNER: ALERTA SONORO (10:50 e 17:45)
+     Posição fixa — aparece em qualquer view
+     ══════════════════════════════════════════════════ -->
+<div id="alerta-sonoro-banner" style="display:none;">
+    <div class="alerta-banner-icone">🔔</div>
+    <div class="alerta-banner-texto">
+        <strong id="alerta-banner-titulo">Hora de montar as marmitas!</strong>
+        <span>Verifique o painel do restaurante para o total do dia.</span>
+    </div>
+    <button class="alerta-banner-close" onclick="dismissAlerta()" title="Fechar">✕</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
      SCRIPTS
      ══════════════════════════════════════════════════ -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -474,6 +590,7 @@
 <script src="ui.js"></script>
 <script src="admin.js"></script>
 <script src="app.js"></script>
+<script src="restaurante.js"></script>
 <script src="device.js"></script>
 
 <script>

@@ -142,6 +142,7 @@ function abrirModalEdicao(i) {
     document.getElementById('editDataHora').value   = p.dataHoraExibicao || '';
     document.getElementById('editNome').value       = p.nome      || '';
     document.getElementById('editPlaca').value      = p.placa     || '';
+    document.getElementById('editResponsavel').value = p.responsavel || '';
     document.getElementById('editCooperado').value  = p.cooperado || '';
     document.getElementById('editFazenda').value    = p.fazenda   || '';
     document.getElementById('editQtd').value        = p.quantidade || 1;
@@ -172,6 +173,7 @@ async function salvarEdicao() {
             dataHoraExibicao: document.getElementById('editDataHora').value.trim(),
             nome:             document.getElementById('editNome').value.toUpperCase().trim(),
             placa:            document.getElementById('editPlaca').value.toUpperCase().trim(),
+            responsavel:      document.getElementById('editResponsavel').value.toUpperCase().trim(),
             cooperado:        document.getElementById('editCooperado').value.toUpperCase().trim(),
             fazenda:          document.getElementById('editFazenda').value.toUpperCase().trim(),
             quantidade:       parseInt(document.getElementById('editQtd').value) || 1,
@@ -227,8 +229,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const dataISO = agora.toISOString().split('T')[0];
             const placa   = document.getElementById('placaVeiculo').value.toUpperCase().trim();
             const nome    = document.getElementById('nomeMotorista').value.toUpperCase().trim();
+            const responsavel = document.getElementById('nomeResponsavel').value.toUpperCase().trim();
 
-            if (!placa || !nome) { alert('Preencha placa e nome do motorista.'); return; }
+            if (!placa || !nome || !responsavel) { alert('Preencha placa, motorista e responsável.'); return; }
 
             const pedidos = await dbGet();
 
@@ -248,7 +251,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const quantidade = parseInt(document.getElementById('quantidadeMarmitas').value) || 1;
             const dataHoraExibicao = agora.toLocaleDateString('pt-BR') + ' - ' + agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
 
-            pedidos.unshift({ dataHoraExibicao, dataISO, nome, placa, cooperado, fazenda, quantidade, refeicao: tipo });
+            pedidos.unshift({ dataHoraExibicao, dataISO, nome, placa, responsavel, cooperado, fazenda, quantidade, refeicao: tipo });
             await dbSet(pedidos);
             await _atualizarCadastroVeiculo(placa, nome, fazenda, cooperado);
 
@@ -306,7 +309,7 @@ function renderizarTabela(pedidos) {
     _atualizarStats(pedidos);
 
     if (!pedidos.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Nenhuma solicitação encontrada.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma solicitação encontrada.</td></tr>';
         return;
     }
     const badgeRef = r => r === 'almoco'
@@ -319,6 +322,7 @@ function renderizarTabela(pedidos) {
             <td data-label="Refeição">${badgeRef(p.refeicao||'janta')}</td>
             <td data-label="Motorista"><strong>${p.nome}</strong></td>
             <td data-label="Placa">${p.placa}</td>
+            <td data-label="Responsável">${p.responsavel||'—'}</td>
             <td data-label="Cooperado">${p.cooperado}</td>
             <td data-label="Fazenda">${p.fazenda}</td>
             <td data-label="Qtd"><span class="badge-qty">${p.quantidade}</span></td>
