@@ -62,3 +62,20 @@ async function dbGetUsuarios() { return []; }
 async function dbCriarUsuario() { return null; }
 async function dbAtualizarUsuario() { return false; }
 async function dbDeletarUsuario() { return false; }
+
+/* ── RESPONSÁVEIS (cache de nomes) ───────────────────── */
+const _RESP_REF = 'responsaveis';
+
+async function dbGetResponsaveis() {
+    try {
+        const snap = await _db.ref(_RESP_REF).get();
+        if (!snap.exists()) return [];
+        const d = snap.val();
+        return Array.isArray(d) ? d : Object.values(d);
+    } catch (e) { console.error('[DB] dbGetResponsaveis:', e); return []; }
+}
+
+async function dbSalvarResponsaveis(lista) {
+    try { await _db.ref(_RESP_REF).set(lista); return true; }
+    catch (e) { console.error('[DB] dbSalvarResponsaveis:', e); return false; }
+}

@@ -35,6 +35,24 @@
 
             <div id="aviso-horario" class="msg msg-erro" style="display:none;"></div>
 
+            <!-- Seleção rápida de veículos recentes -->
+            <div class="quick-section">
+                <div class="quick-header">
+                    <div class="quick-header-text">
+                        <span class="quick-title">⚡ Lançamento Rápido</span>
+                        <span class="quick-sub">Selecione um veículo recente para preencher automaticamente</span>
+                    </div>
+                    <div class="quick-search-wrapper">
+                        <input type="text" id="quickSearchInput" class="quick-search-input"
+                            placeholder="🔍 Buscar placa, motorista ou cooperado..."
+                            oninput="_filtrarQuickSelect(this.value)" autocomplete="off">
+                    </div>
+                </div>
+                <div id="quickSelectList" class="quick-list">
+                    <span class="quick-empty">Carregando veículos...</span>
+                </div>
+            </div>
+
             <form id="formMarmitas">
                 <div class="form-grid">
 
@@ -54,18 +72,12 @@
                             oninput="this.value=this.value.toUpperCase()" required>
                     </div>
 
-                    <div class="field-group">
+                    <div class="field-group autocomplete-wrap">
                         <label for="nomeResponsavel">Responsável pela Solicitação</label>
                         <input type="text" id="nomeResponsavel" class="caps-lock"
                             placeholder="EX: MARIA SOUZA"
-                            oninput="this.value=this.value.toUpperCase()" required>
-                    </div>
-
-                    <div class="field-group">
-                        <label for="nomeFazenda">Fazenda</label>
-                        <input type="text" id="nomeFazenda" class="caps-lock"
-                            placeholder="EX: FAZENDA BOA VISTA"
-                            oninput="forcarMaiusculoEBuscarCooperado(this)" required>
+                            oninput="forcarMaiusculoEBuscarResponsavel(this)"
+                            autocomplete="off" required>
                     </div>
 
                     <div class="field-group">
@@ -535,12 +547,6 @@
                     <!-- Preenchido via JS -->
                 </div>
             </div>
-        </div>
-
-        <!-- Cards dos pedidos -->
-        <div class="rest-titulo-secao">📋 Pedidos em Aberto — Atualização em Tempo Real</div>
-        <div id="rest-cards" class="rest-cards-grid">
-            <p class="rest-loading">Carregando...</p>
         </div>
 
     </main>

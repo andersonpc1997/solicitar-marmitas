@@ -11,14 +11,130 @@
    PRÉ-CADASTRO — cache local
    ================================================================ */
 let _cacheVeiculos = {};
+let _cacheResponsaveis = [];
 
 async function _carregarCacheVeiculos() {
     _cacheVeiculos = await dbGetVeiculos() || {};
 }
 
+async function _carregarCacheResponsaveis() {
+    _cacheResponsaveis = await dbGetResponsaveis() || [];
+}
+
 async function _atualizarCadastroVeiculo(placa, nome, fazenda, cooperado) {
     _cacheVeiculos[placa] = { nome, fazenda, cooperado };
     await dbSalvarVeiculo(placa, { nome, fazenda, cooperado });
+}
+
+async function _salvarResponsavel(nomeResp) {
+    if (!nomeResp) return;
+    if (!_cacheResponsaveis.includes(nomeResp)) {
+        _cacheResponsaveis.push(nomeResp);
+        _cacheResponsaveis.sort();
+        await dbSalvarResponsaveis(_cacheResponsaveis);
+    }
+}
+
+/* ── Quick-Select: botões de lançamento rápido ────── */
+let _quickEntries = []; // combinações únicas extraídas dos pedidos
+
+function _desenharListaQuickSelect(lista) {
+    const container = document.getElementById('quickSelectList');
+    if (!container) return;
+
+    if (!lista.length) {
+        container.innerHTML = '<span class="quick-empty">Nenhum lançamento encontrado para a pesquisa.</span>';
+        return;
+    }
+
+    const placaAtual = (document.getElementById('placaVeiculo')?.value || '').trim();
+
+    container.innerHTML = lista.map(d => {
+        const ativo = d.placa === placaAtual ? 'quick-btn-active' : '';
+        return `
+        <button type="button" class="quick-btn ${ativo}" onclick="_selecionarRapido('${d.placa}')">
+            <span class="quick-btn-placa">${d.placa}</span>
+            <span class="quick-btn-nome">${d.nome || '—'}</span>
+            <span class="quick-btn-coop">${d.cooperado || ''}</span>
+        </button>
+    `}).join('');
+}
+
+function _filtrarQuickSelect(termo) {
+    const busca = (termo || '').trim().toUpperCase();
+    if (!busca) {
+        _desenharListaQuickSelect(_quickEntries);
+        return;
+    }
+    const filtrados = _quickEntries.filter(d =>
+        (d.placa || '').toUpperCase().includes(busca) ||
+        (d.nome || '').toUpperCase().includes(busca) ||
+        (d.cooperado || '').toUpperCase().includes(busca) ||
+        (d.responsavel || '').toUpperCase().includes(busca)
+    );
+    _desenharListaQuickSelect(filtrados);
+}
+
+async function _renderizarQuickSelect() {
+    const container = document.getElementById('quickSelectList');
+    if (!container) return;
+
+    const inputBusca = document.getElementById('quickSearchInput');
+    const termoAtual = inputBusca ? inputBusca.value : '';
+
+    // Busca todos os lançamentos do banco de dados
+    const pedidos = await dbGet();
+    if (!pedidos.length) {
+        container.innerHTML = '<span class="quick-empty">Nenhum lançamento anterior. Lance o primeiro pedido manualmente.</span>';
+        return;
+    }
+
+    // Extrai combinações únicas por placa (pega o mais recente de cada placa)
+    const mapa = {};
+    pedidos.forEach(p => {
+        const placa = p.placa || '';
+        if (!placa) return;
+        // Mantém apenas o registro mais recente de cada placa
+        if (!mapa[placa]) {
+            mapa[placa] = {
+                placa,
+                nome:        p.nome || '',
+                cooperado:   p.cooperado || '',
+                responsavel: p.responsavel || '',
+            };
+        }
+    });
+
+    _quickEntries = Object.values(mapa);
+    _quickEntries.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    if (!_quickEntries.length) {
+        container.innerHTML = '<span class="quick-empty">Nenhum veículo encontrado nos lançamentos.</span>';
+        return;
+    }
+
+    _filtrarQuickSelect(termoAtual);
+}
+
+function _selecionarRapido(placa) {
+    const v = _quickEntries.find(e => e.placa === placa);
+    if (!v) return;
+    document.getElementById('placaVeiculo').value    = v.placa || '';
+    document.getElementById('nomeMotorista').value    = v.nome || '';
+    document.getElementById('nomeCooperado').value    = v.cooperado || '';
+    document.getElementById('nomeResponsavel').value  = v.responsavel || '';
+    // Se responsável já preenchido, foca na quantidade; senão foca no responsável
+    if (v.responsavel) {
+        document.getElementById('quantidadeMarmitas').focus();
+    } else {
+        document.getElementById('nomeResponsavel').focus();
+    }
+    _fecharSugestoes();
+
+    // Destaca visualmente o botão selecionado
+    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('quick-btn-active'));
+    const btn = [...document.querySelectorAll('.quick-btn')].find(b => b.querySelector('.quick-btn-placa')?.textContent === placa);
+    if (btn) btn.classList.add('quick-btn-active');
 }
 
 /* ── Autocomplete da placa ───────────────────────────── */
@@ -89,6 +205,51 @@ async function forcarMaiusculoEBuscarCooperado(input) {
     const match = Object.values(_cacheVeiculos).find(v => (v.fazenda||'') === faz);
     if (match) document.getElementById('nomeCooperado').value = match.cooperado || '';
 }
+
+/* ── Autocomplete responsável ──────────────────────── */
+let _acRespTimer;
+function forcarMaiusculoEBuscarResponsavel(input) {
+    input.value = input.value.toUpperCase();
+    const txt = input.value.trim();
+    _fecharSugestoesResp();
+    clearTimeout(_acRespTimer);
+    if (txt.length < 2) return;
+
+    _acRespTimer = setTimeout(() => {
+        const matches = _cacheResponsaveis
+            .filter(r => r.startsWith(txt) && r !== txt)
+            .slice(0, 5);
+        if (matches.length) _mostrarSugestoesResp(matches, input);
+    }, 200);
+}
+
+function _mostrarSugestoesResp(matches, inputEl) {
+    _fecharSugestoesResp();
+    const ul = document.createElement('ul');
+    ul.id = 'ac-lista-resp';
+    ul.className = 'autocomplete-lista';
+    matches.forEach(nome => {
+        const li = document.createElement('li');
+        li.className = 'autocomplete-item';
+        li.innerHTML = `<span class="ac-nome">${nome}</span>`;
+        li.addEventListener('mousedown', e => {
+            e.preventDefault();
+            inputEl.value = nome;
+            _fecharSugestoesResp();
+        });
+        ul.appendChild(li);
+    });
+    const wrap = inputEl.closest('.autocomplete-wrap') || inputEl.parentElement;
+    wrap.appendChild(ul);
+}
+
+function _fecharSugestoesResp() {
+    const el = document.getElementById('ac-lista-resp');
+    if (el) el.remove();
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('#ac-lista-resp') && !e.target.closest('#nomeResponsavel')) _fecharSugestoesResp();
+});
 
 /* ================================================================
    HORÁRIOS E TIPO DE REFEIÇÃO
@@ -203,6 +364,8 @@ async function excluirRegistro(i) {
    ================================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
     await _carregarCacheVeiculos();
+    await _carregarCacheResponsaveis();
+    _renderizarQuickSelect();
     _atualizarBadgeHorario();
     setInterval(_atualizarBadgeHorario, 30000); // atualiza a cada 30s
 
@@ -247,13 +410,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const cooperado  = document.getElementById('nomeCooperado').value.toUpperCase().trim();
-            const fazenda    = document.getElementById('nomeFazenda').value.toUpperCase().trim();
+            const fazenda    = '';
             const quantidade = parseInt(document.getElementById('quantidadeMarmitas').value) || 1;
             const dataHoraExibicao = agora.toLocaleDateString('pt-BR') + ' - ' + agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
 
             pedidos.unshift({ dataHoraExibicao, dataISO, nome, placa, responsavel, cooperado, fazenda, quantidade, refeicao: tipo });
             await dbSet(pedidos);
             await _atualizarCadastroVeiculo(placa, nome, fazenda, cooperado);
+            await _salvarResponsavel(responsavel);
 
             const sucesso = document.getElementById('mensagem-sucesso');
             if (sucesso) {
@@ -263,6 +427,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             form.reset();
             document.getElementById('quantidadeMarmitas').value = '1';
             _atualizarBadgeHorario();
+            _renderizarQuickSelect(); // atualiza lista de veículos
+            // Remove destaque do botão rápido
+            document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('quick-btn-active'));
             setTimeout(() => { if(sucesso) sucesso.style.display = 'none'; }, 3500);
 
         } finally {

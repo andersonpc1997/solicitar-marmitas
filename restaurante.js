@@ -127,10 +127,6 @@ function iniciarRestaurante() {
     if (_timerAlertaId) clearInterval(_timerAlertaId);
     _timerAlertaId = _iniciarTimerAlerta();
 
-    // Limpa área de cards
-    const area = document.getElementById('rest-cards');
-    if (area) area.innerHTML = '<p class="rest-loading">Carregando...</p>';
-
     // Escuta Firebase em tempo real
     return dbEscutar(pedidos => {
         _pedidosEmMemoria = pedidos;
@@ -172,40 +168,8 @@ function _renderizarRestaurante(pedidos) {
                     <span class="rest-resp-qtd">${qtd}</span>
                 </div>
             `).join('');
-        elResp.innerHTML = htmlResp || '<div class="rest-resp-vazio">Nenhum pedido</div>';
+        elResp.innerHTML = htmlResp || '<div class="rest-resp-vazio">Nenhum pedido hoje.</div>';
     }
-
-    // ── Cards ──
-    const area = document.getElementById('rest-cards');
-    if (!area) return;
-
-    if (!pedidos.length) {
-        area.innerHTML = '<p class="rest-vazio">Nenhuma solicitação registrada hoje.</p>';
-        return;
-    }
-
-    // Guarda IDs anteriores para animar somente os novos
-    const idsAntigos = new Set(
-        [...area.querySelectorAll('.rest-card')].map(el => el.dataset.uid)
-    );
-
-    area.innerHTML = pedidos.map((p, i) => {
-        const tipo = p.refeicao || 'janta';
-        const isAlmoco = tipo === 'almoco';
-        const uid = `${p.placa || ''}_${p.dataISO || ''}_${i}`;
-        const isNovo = !idsAntigos.has(uid);
-        return `
-        <div class="rest-card ${isAlmoco ? 'rest-card-almoco' : 'rest-card-janta'} ${isNovo ? 'rest-card-novo' : ''}"
-             data-uid="${uid}">
-            <div class="rest-card-badge">${isAlmoco ? '☀️ Almoço' : '🌙 Janta'}</div>
-            <div class="rest-card-qty">${p.quantidade}</div>
-            <div class="rest-card-label">marmita${parseInt(p.quantidade || 1) > 1 ? 's' : ''}</div>
-            <div class="rest-card-responsavel">Resp: ${p.responsavel || '—'}</div>
-            <div class="rest-card-motorista">${p.nome || '—'}</div>
-            <div class="rest-card-cooperado">${p.cooperado || '—'}</div>
-            <div class="rest-card-hora">${(p.dataHoraExibicao || '').split(' - ')[1] || ''}</div>
-        </div>`;
-    }).join('');
 }
 
 function _setRest(id, val) {
